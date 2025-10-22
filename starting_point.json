@@ -1,0 +1,1184 @@
+{
+  "info": {
+    "name": "Connet - Slack Clone API (NO EMAIL VERIFICATION)",
+    "description": "🎉 COMPLETE Postman collection for Slack Clone with Supabase REST API.\n\n🚀 SUPER SIMPLE SETUP:\n1. ✅ Set supabase_url to your project URL\n2. ✅ Set supabase_anon_key to your anon key\n3. 🔧 CRITICAL: Run COMPLETE-DATABASE-SETUP.sql (ONE FILE ONLY!)\n4. ✅ Test: Run 'Database Setup Verification' first!\n\n⚠️ NO EMAIL VERIFICATION REQUIRED:\n✅ Users are auto-confirmed on signup\n✅ Immediate access after signup\n✅ Perfect for development/testing\n\n🔧 WHAT'S FIXED:\n✅ Duplicate key violations resolved\n✅ Auth trigger handles existing profiles safely\n✅ Admin function prevents duplicate users\n✅ Proper error handling for all endpoints\n✅ Role auto-detection working perfectly\n✅ No email verification needed\n\n🎓 DYNAMIC ROLE ASSIGNMENT:\n📧 @karabuk.edu.tr → researcher\n📧 @ogrenci.karabuk.edu.tr → student \n📧 @gmail.com/@outlook.com → user\n✨ Roles automatically assigned on signup!\n\n🧪 TESTING SEQUENCE:\n1. Run COMPLETE-DATABASE-SETUP.sql in Supabase SQL Editor\n2. Run 'Database Setup Verification'\n3. Try 'Auth Signup Tests' (work instantly!)\n4. Test 'Admin User Management'\n5. Verify with 'User Queries'",
+    "version": "3.0.0-NO-EMAIL-VERIFICATION",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "supabase_url",
+      "value": "https://qzilrmaurxfpxdhrtolf.supabase.co",
+      "type": "string"
+    },
+    {
+      "key": "supabase_anon_key", 
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6aWxybWF1cnhmcHhkaHJ0b2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4Mjc2NDUsImV4cCI6MjA3NjQwMzY0NX0.9lKrU1UbIqdMppGQoUsYYUdNG5wUjAldpQJZrxEfT_E",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token", 
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔧 Database Setup Verification",
+      "item": [
+        {
+          "name": "✅ Verify Database Setup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"SELECT check_database_setup();\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/check_database_setup",
+            "description": "🔍 FIRST TEST - Verify Setup\n\n✅ This should return:\n- users_table_exists: true\n- user_roles_table_exists: true\n- app_role_enum_exists: true\n- auth_trigger_exists: true\n\n❌ If any are false, run the SQL scripts!"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Database setup is complete', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.users_table_exists).to.be.true;",
+                  "    pm.expect(responseJson.user_roles_table_exists).to.be.true;",
+                  "    pm.expect(responseJson.app_role_enum_exists).to.be.true;",
+                  "    pm.expect(responseJson.auth_trigger_exists).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Test Email Domain Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"SELECT test_email_domains();\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/test_email_domains",
+            "description": "🧪 TEST EMAIL DOMAINS\n\n✅ Should detect:\n- @ogrenci.karabuk.edu.tr → student\n- @karabuk.edu.tr → researcher  \n- @gmail.com → user"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Email domain detection works', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.student_email.detected_role).to.equal('student');",
+                  "    pm.expect(responseJson.researcher_email.detected_role).to.equal('researcher');",
+                  "    pm.expect(responseJson.user_email.detected_role).to.equal('user');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🔐 Auth Signup Tests (FIXED)",
+      "item": [
+        {
+          "name": "✅ Signup - Student (FIXED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student-{{$timestamp}}@ogrenci.karabuk.edu.tr\",\n  \"password\": \"testpassword123\",\n  \"data\": {\n    \"full_name\": \"Test Student User\"\n  }\n}"
+            },
+            "url": "{{supabase_url}}/auth/v1/signup",
+            "description": "🎓 STUDENT SIGNUP - FIXED!\n\n✅ What happens:\n1. Creates auth user with @ogrenci.karabuk.edu.tr\n2. Fixed trigger auto-assigns 'student' role\n3. No more duplicate key errors!\n4. Uses timestamp to ensure unique emails\n\n🔧 Fixed Issues:\n- ✅ Duplicate prevention\n- ✅ Safe role assignment\n- ✅ Proper error handling"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Student signup successful', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.user).to.exist;",
+                  "    pm.expect(responseJson.user.email).to.include('@ogrenci.karabuk.edu.tr');",
+                  "    ",
+                  "    // Save user details for further tests",
+                  "    if (responseJson.access_token) {",
+                  "        pm.environment.set('student_access_token', responseJson.access_token);",
+                  "        pm.environment.set('student_user_id', responseJson.user.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Signup - Researcher (FIXED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"researcher-{{$timestamp}}@karabuk.edu.tr\",\n  \"password\": \"testpassword123\",\n  \"data\": {\n    \"full_name\": \"Test Researcher\"\n  }\n}"
+            },
+            "url": "{{supabase_url}}/auth/v1/signup",
+            "description": "🔬 RESEARCHER SIGNUP - FIXED!\n\n✅ Auto-assigns 'researcher' role for @karabuk.edu.tr"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Researcher signup successful', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.user.email).to.include('@karabuk.edu.tr');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Signup - Regular User (FIXED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user-{{$timestamp}}@gmail.com\",\n  \"password\": \"testpassword123\",\n  \"data\": {\n    \"full_name\": \"Test Regular User\"\n  }\n}"
+            },
+            "url": "{{supabase_url}}/auth/v1/signup",
+            "description": "👤 REGULAR USER SIGNUP - FIXED!\n\n✅ Auto-assigns 'user' role for @gmail.com"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Regular user signup successful', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.user.email).to.include('@gmail.com');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "👑 Admin User Management (FIXED)",
+      "item": [
+        {
+          "name": "👑 Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": "{{supabase_url}}/auth/v1/token?grant_type=password",
+            "description": "🔑 Admin login to get admin access token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.environment.set('admin_access_token', responseJson.access_token);",
+                  "    pm.environment.set('admin_user_id', responseJson.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Create Complete User - Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_email\": \"admin-created-student-{{$timestamp}}@ogrenci.karabuk.edu.tr\",\n  \"p_username\": \"admin_student_{{$timestamp}}\",\n  \"p_full_name\": \"Admin Created Student\",\n  \"p_avatar_url\": \"https://example.com/avatar-student.jpg\",\n  \"p_projects\": [\"Student Project A\", \"Student Project B\"],\n  \"p_role\": null,\n  \"p_is_active\": true\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/admin_create_complete_user",
+            "description": "✅ ADMIN CREATE USER - FIXED!\n\n🎯 Creates complete user with:\n✅ Avatar image\n✅ Full name\n✅ Username  \n✅ Email\n✅ Projects array\n✅ Auto-detected role (student)\n✅ Active status\n\n🔧 Fixed duplicate prevention!"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin create user successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "    pm.expect(responseJson.user).to.exist;",
+                  "    pm.expect(responseJson.user.role).to.equal('student');",
+                  "    pm.expect(responseJson.user.projects).to.be.an('array');",
+                  "    pm.expect(responseJson.user.avatar_url).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Create Complete User - Researcher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_email\": \"admin-created-researcher-{{$timestamp}}@karabuk.edu.tr\",\n  \"p_username\": \"admin_researcher_{{$timestamp}}\",\n  \"p_full_name\": \"Admin Created Researcher\",\n  \"p_avatar_url\": \"https://example.com/avatar-researcher.jpg\",\n  \"p_projects\": [\"Research Project Alpha\", \"Research Project Beta\"],\n  \"p_role\": null,\n  \"p_is_active\": true\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/admin_create_complete_user",
+            "description": "🔬 ADMIN CREATE RESEARCHER - Auto-detects researcher role"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin create researcher successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "    pm.expect(responseJson.user.role).to.equal('researcher');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Override Role - Gmail User as Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_email\": \"new-admin-{{$timestamp}}@gmail.com\",\n  \"p_username\": \"new_admin_{{$timestamp}}\",\n  \"p_full_name\": \"New Admin User\",\n  \"p_avatar_url\": \"https://example.com/avatar-admin.jpg\",\n  \"p_projects\": [\"Admin Project 1\"],\n  \"p_role\": \"admin\",\n  \"p_is_active\": true\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/admin_create_complete_user",
+            "description": "👑 ROLE OVERRIDE TEST\n\n✅ Creates Gmail user but overrides to admin role\n(Normally @gmail.com → user, but we force admin)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Role override successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "    pm.expect(responseJson.user.role).to.equal('admin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Test Duplicate Prevention",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_email\": \"duplicate-test@example.com\",\n  \"p_username\": \"duplicate_user\",\n  \"p_full_name\": \"Duplicate Test User\",\n  \"p_is_active\": true\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/admin_create_complete_user",
+            "description": "🚫 DUPLICATE PREVENTION TEST\n\n✅ First call should succeed\n❌ Second call with same email should fail gracefully"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// First attempt should succeed, subsequent should fail",
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson.success === false) {",
+                  "    pm.test('Duplicate prevention works', function () {",
+                  "        pm.expect(responseJson.error).to.include('already exists');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('First creation successful', function () {",
+                  "        pm.expect(responseJson.success).to.be.true;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📊 User Queries & Verification",
+      "item": [
+        {
+          "name": "📋 List All Users with Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/users?select=id,email,username,full_name,avatar_url,projects,is_active,user_roles(role)",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "users"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "id,email,username,full_name,avatar_url,projects,is_active,user_roles(role)"
+                }
+              ]
+            },
+            "description": "📊 GET ALL USERS WITH COMPLETE DATA\n\n✅ Shows all fields requested:\n- Avatar image\n- Full name\n- Username\n- Email\n- Projects\n- Role\n- Active status"
+          }
+        },
+        {
+          "name": "🎓 Filter Students Only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/users?select=*,user_roles(role)&user_roles.role=eq.student",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "users"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,user_roles(role)"
+                },
+                {
+                  "key": "user_roles.role",
+                  "value": "eq.student"
+                }
+              ]
+            },
+            "description": "🎓 FILTER BY ROLE - Students only"
+          }
+        },
+        {
+          "name": "🔬 Filter Researchers Only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/users?select=*,user_roles(role)&user_roles.role=eq.researcher",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "users"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,user_roles(role)"
+                },
+                {
+                  "key": "user_roles.role",
+                  "value": "eq.researcher"
+                }
+              ]
+            },
+            "description": "🔬 FILTER BY ROLE - Researchers only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Profile Management",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.{{user_id}}&select=*,user_roles(role)",
+            "description": "👤 GET MY COMPLETE PROFILE\n\n✅ Shows:\n- Personal info (name, email, username)\n- Avatar, projects, status\n- Current roles\n- Account status"
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"my_new_username\",\n  \"full_name\": \"John Doe\",\n  \"avatar_url\": \"https://example.com/my-avatar.jpg\",\n  \"projects\": [\"My Project 1\", \"My Project 2\"],\n  \"status\": \"ONLINE\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.{{user_id}}",
+            "description": "✏️ UPDATE MY PROFILE\n\n✅ Can update:\n- Username, full name\n- Avatar image URL\n- Projects array\n- Online/offline status"
+          }
+        },
+        {
+          "name": "Set Status Online",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ONLINE\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.{{user_id}}",
+            "description": "🟢 SET STATUS TO ONLINE"
+          }
+        },
+        {
+          "name": "Set Status Offline",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OFFLINE\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.{{user_id}}",
+            "description": "⚫ SET STATUS TO OFFLINE"
+          }
+        },
+        {
+          "name": "Get My Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/user_roles?user_id=eq.{{user_id}}&select=*",
+            "description": "🎭 CHECK MY ROLES\n\n✅ Shows all roles assigned to me:\n- admin, moderator, student, researcher, etc."
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Channels",
+      "item": [
+        {
+          "name": "Get All Channels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/channels?select=*",
+            "description": "📋 GET ALL CHANNELS\n\n✅ Lists all available channels"
+          }
+        },
+        {
+          "name": "Get Channel by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/channels?id=eq.1&select=*",
+            "description": "🔍 GET SPECIFIC CHANNEL\n\n✅ Get channel details by ID"
+          }
+        },
+        {
+          "name": "Create New Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"my-new-channel-{{$timestamp}}\",\n  \"created_by\": \"{{user_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/channels",
+            "description": "➕ CREATE NEW CHANNEL\n\n✅ Creates a new channel with unique slug"
+          }
+        },
+        {
+          "name": "Delete My Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/channels?id=eq.3&created_by=eq.{{user_id}}",
+            "description": "🗑️ DELETE MY CHANNEL\n\n✅ Only delete channels I created"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Messages",
+      "item": [
+        {
+          "name": "Get All Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/messages?select=*,author:user_id(full_name,username,avatar_url)",
+            "description": "📋 GET ALL MESSAGES\n\n✅ Shows messages with author details"
+          }
+        },
+        {
+          "name": "Get Messages by Channel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/messages?channel_id=eq.1&select=*,author:user_id(full_name,username,avatar_url)&order=inserted_at.asc",
+            "description": "🔍 GET MESSAGES FOR CHANNEL\n\n✅ Shows messages in chronological order"
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello from Postman! 🚀 Sent at {{$timestamp}}\",\n  \"channel_id\": 1,\n  \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/messages",
+            "description": "📤 SEND MESSAGE\n\n✅ Send message to specific channel"
+          }
+        },
+        {
+          "name": "Update My Message",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Updated message content 📝 - Updated at {{$timestamp}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/messages?id=eq.3&user_id=eq.{{user_id}}",
+            "description": "✏️ UPDATE MY MESSAGE\n\n✅ Edit my own messages only"
+          }
+        },
+        {
+          "name": "Delete My Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/messages?id=eq.4&user_id=eq.{{user_id}}",
+            "description": "🗑️ DELETE MY MESSAGE\n\n✅ Delete my own messages only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👑 Admin Operations (ADMIN ONLY)",
+      "item": [
+        {
+          "name": "Get All Users with Complete Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/users?select=*,user_roles(role)&order=created_at.desc",
+            "description": "👑 ADMIN: GET ALL USERS\n\n✅ Complete user directory with:\n- All profile information\n- Roles and permissions\n- Account status\n- Creation dates"
+          }
+        },
+        {
+          "name": "Admin Assign Role to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"REPLACE_WITH_USER_ID\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/user_roles",
+            "description": "👑 ADMIN: ASSIGN ROLE\n\n✅ Available roles:\n- admin (full access)\n- moderator (content management)\n- student (basic access)\n- researcher (extended access)\n- professor (academic access)\n- user (default access)\n\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        },
+        {
+          "name": "Admin Update User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"researcher\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/user_roles?user_id=eq.REPLACE_WITH_USER_ID",
+            "description": "👑 ADMIN: UPDATE USER ROLE\n\n✅ Change existing user's role\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        },
+        {
+          "name": "Admin Remove User Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/user_roles?user_id=eq.REPLACE_WITH_USER_ID",
+            "description": "👑 ADMIN: REMOVE USER ROLE\n\n⚠️ Removes all roles from user\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        },
+        {
+          "name": "Admin Delete Any Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/channels?id=eq.REPLACE_WITH_CHANNEL_ID",
+            "description": "👑 ADMIN: DELETE ANY CHANNEL\n\n⚠️ Can delete any channel regardless of creator\n📝 Replace REPLACE_WITH_CHANNEL_ID with actual channel ID"
+          }
+        },
+        {
+          "name": "Admin Delete Any Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/messages?id=eq.REPLACE_WITH_MESSAGE_ID",
+            "description": "👑 ADMIN: DELETE ANY MESSAGE\n\n⚠️ Can delete any message regardless of author\n📝 Replace REPLACE_WITH_MESSAGE_ID with actual message ID"
+          }
+        },
+        {
+          "name": "Admin Update User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Admin Updated Name\",\n  \"username\": \"admin_updated_username\",\n  \"avatar_url\": \"https://example.com/admin-updated-avatar.jpg\",\n  \"projects\": [\"Admin Project 1\", \"Admin Project 2\"],\n  \"is_active\": true,\n  \"status\": \"ONLINE\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.REPLACE_WITH_USER_ID",
+            "description": "👑 ADMIN: UPDATE ANY USER PROFILE\n\n✅ Can update any user's:\n- Personal information\n- Avatar and projects\n- Account status\n- Online/offline status\n\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        },
+        {
+          "name": "Admin Deactivate User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false,\n  \"status\": \"OFFLINE\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.REPLACE_WITH_USER_ID",
+            "description": "👑 ADMIN: DEACTIVATE USER\n\n⚠️ Suspends user account\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        },
+        {
+          "name": "Admin Reactivate User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"status\": \"ONLINE\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.REPLACE_WITH_USER_ID",
+            "description": "👑 ADMIN: REACTIVATE USER\n\n✅ Restores user account\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Debugging & Testing",
+      "item": [
+        {
+          "name": "🔍 Test Auth User Creation Safe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"test_email\": \"debug-safe-{{$timestamp}}@ogrenci.karabuk.edu.tr\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/test_auth_user_creation_safe",
+            "description": "🧪 SAFE DEBUG TEST\n\n✅ Tests user creation with duplicate prevention"
+          }
+        },
+        {
+          "name": "🚀 Test Fixed Auth Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"test_email\": \"trigger-test-{{$timestamp}}@ogrenci.karabuk.edu.tr\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/test_fixed_auth_signup",
+            "description": "🚀 TEST FIXED TRIGGER\n\n✅ Simulates the fixed auth trigger logic"
+          }
+        },
+        {
+          "name": "🧹 Cleanup Test Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/cleanup_test_data",
+            "description": "🧹 CLEANUP TEST DATA\n\n✅ Removes all test users and roles\n⚠️ Use carefully - removes test data!"
+          }
+        }
+      ]
+    }
+  ]
+}
