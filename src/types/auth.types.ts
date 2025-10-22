@@ -16,6 +16,18 @@ export interface User {
   is_active: boolean
   created_at?: string
   updated_at?: string
+  // Extended profile fields
+  bio?: string
+  institution?: string
+  department?: string
+  title?: string
+  orcid_id?: string
+  linkedin_url?: string
+  website_url?: string
+  expertise_areas?: string[]
+  skills?: string[]
+  location?: string
+  available_for_collaboration?: boolean
 }
 
 // User Role Interface
@@ -66,6 +78,18 @@ export interface ProfileUpdateRequest {
   avatar_url?: string
   projects?: string[]
   status?: UserStatus
+  // Extended profile fields
+  bio?: string
+  institution?: string
+  department?: string
+  title?: string
+  orcid_id?: string
+  linkedin_url?: string
+  website_url?: string
+  expertise_areas?: string[]
+  skills?: string[]
+  location?: string
+  available_for_collaboration?: boolean
 }
 
 // Admin User Creation (admin_create_complete_user RPC)

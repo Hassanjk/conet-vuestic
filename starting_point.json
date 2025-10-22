@@ -125,6 +125,68 @@
               }
             }
           ]
+        },
+        {
+          "name": "✅ Test Professional Fields Schema",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/users?limit=1&select=id,bio,institution,department,title,orcid_id,linkedin_url,website_url,expertise_areas,skills,location,available_for_collaboration",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "users"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                },
+                {
+                  "key": "select",
+                  "value": "id,bio,institution,department,title,orcid_id,linkedin_url,website_url,expertise_areas,skills,location,available_for_collaboration"
+                }
+              ]
+            },
+            "description": "🧪 TEST PROFESSIONAL FIELDS SCHEMA\n\n✅ Verifies all new professional fields exist:\n- bio, institution, department, title\n- orcid_id, linkedin_url, website_url\n- expertise_areas[], skills[], location\n- available_for_collaboration\n\n💡 If this returns data, the schema is correctly updated!"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Professional fields schema exists', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.length > 0) {",
+                  "        const user = responseJson[0];",
+                  "        // Check that all professional fields are present (can be null)",
+                  "        pm.expect(user).to.have.property('bio');",
+                  "        pm.expect(user).to.have.property('institution');",
+                  "        pm.expect(user).to.have.property('department');",
+                  "        pm.expect(user).to.have.property('title');",
+                  "        pm.expect(user).to.have.property('orcid_id');",
+                  "        pm.expect(user).to.have.property('linkedin_url');",
+                  "        pm.expect(user).to.have.property('website_url');",
+                  "        pm.expect(user).to.have.property('expertise_areas');",
+                  "        pm.expect(user).to.have.property('skills');",
+                  "        pm.expect(user).to.have.property('location');",
+                  "        pm.expect(user).to.have.property('available_for_collaboration');",
+                  "        console.log('✅ All professional fields exist in schema');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
@@ -150,7 +212,7 @@
               "raw": "{\n  \"email\": \"student-{{$timestamp}}@ogrenci.karabuk.edu.tr\",\n  \"password\": \"testpassword123\",\n  \"data\": {\n    \"full_name\": \"Test Student User\"\n  }\n}"
             },
             "url": "{{supabase_url}}/auth/v1/signup",
-            "description": "🎓 STUDENT SIGNUP - FIXED!\n\n✅ What happens:\n1. Creates auth user with @ogrenci.karabuk.edu.tr\n2. Fixed trigger auto-assigns 'student' role\n3. No more duplicate key errors!\n4. Uses timestamp to ensure unique emails\n\n🔧 Fixed Issues:\n- ✅ Duplicate prevention\n- ✅ Safe role assignment\n- ✅ Proper error handling"
+            "description": "🎓 STUDENT SIGNUP - FIXED!\n\n✅ What happens:\n1. Creates auth user with @ogrenci.karabuk.edu.tr\n2. Auto-syncs profile after signup\n3. Assigns 'student' role automatically\n4. Uses timestamp to ensure unique emails\n\n🔧 Fixed Issues:\n- ✅ Duplicate prevention\n- ✅ Safe role assignment\n- ✅ Auto profile sync\n- ✅ Proper error handling"
           },
           "event": [
             {
@@ -167,7 +229,73 @@
                   "    if (responseJson.access_token) {",
                   "        pm.environment.set('student_access_token', responseJson.access_token);",
                   "        pm.environment.set('student_user_id', responseJson.user.id);",
+                  "        ",
+                  "        // Auto-sync profile after signup",
+                  "        const syncRequest = {",
+                  "            url: pm.environment.get('supabase_url') + '/rest/v1/rpc/sync_specific_auth_user',",
+                  "            method: 'POST',",
+                  "            header: {",
+                  "                'apikey': pm.environment.get('supabase_anon_key'),",
+                  "                'Authorization': 'Bearer ' + pm.environment.get('supabase_anon_key'),",
+                  "                'Content-Type': 'application/json'",
+                  "            },",
+                  "            body: {",
+                  "                mode: 'raw',",
+                  "                raw: JSON.stringify({",
+                  "                    target_user_id: responseJson.user.id",
+                  "                })",
+                  "            }",
+                  "        };",
+                  "        ",
+                  "        pm.sendRequest(syncRequest, (err, res) => {",
+                  "            if (!err) {",
+                  "                console.log('Profile sync result:', res.json());",
+                  "            } else {",
+                  "                console.log('Profile sync error:', err);",
+                  "            }",
+                  "        });",
                   "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔄 Auto-Sync Profile After Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_user_id\": \"{{student_user_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/sync_specific_auth_user",
+            "description": "🔄 AUTO-SYNC PROFILE\n\n✅ This automatically creates the public profile for new users\n✅ Run this immediately after any signup\n✅ Ensures profile exists before trying to query it\n\n🎯 Use this as a backup if the trigger doesn't fire"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Profile sync successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "    console.log('Sync result:', responseJson.message);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -292,7 +420,7 @@
           ]
         },
         {
-          "name": "✅ Create Complete User - Student",
+          "name": "✅ Create Complete User - Student (WITH PROFESSIONAL FIELDS)",
           "request": {
             "method": "POST",
             "header": [
@@ -311,10 +439,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_email\": \"admin-created-student-{{$timestamp}}@ogrenci.karabuk.edu.tr\",\n  \"p_username\": \"admin_student_{{$timestamp}}\",\n  \"p_full_name\": \"Admin Created Student\",\n  \"p_avatar_url\": \"https://example.com/avatar-student.jpg\",\n  \"p_projects\": [\"Student Project A\", \"Student Project B\"],\n  \"p_role\": null,\n  \"p_is_active\": true\n}"
+              "raw": "{\n  \"p_email\": \"admin-created-student-{{$timestamp}}@ogrenci.karabuk.edu.tr\",\n  \"p_username\": \"admin_student_{{$timestamp}}\",\n  \"p_full_name\": \"Admin Created Student\",\n  \"p_avatar_url\": \"https://example.com/avatar-student.jpg\",\n  \"p_projects\": [\"Student Project A\", \"Student Project B\"],\n  \"p_role\": null,\n  \"p_is_active\": true,\n  \"p_bio\": \"Computer Science student passionate about AI and machine learning. Currently working on my thesis about neural networks.\",\n  \"p_institution\": \"Karabük University\",\n  \"p_department\": \"Computer Engineering\",\n  \"p_title\": \"Graduate Student\",\n  \"p_orcid_id\": \"0000-0000-0000-000X\",\n  \"p_linkedin_url\": \"https://linkedin.com/in/student-profile\",\n  \"p_website_url\": \"https://student-portfolio.com\",\n  \"p_expertise_areas\": [\"Machine Learning\", \"Python\", \"Data Analysis\"],\n  \"p_skills\": [\"Programming\", \"Research\", \"Technical Writing\"],\n  \"p_location\": \"Karabük, Turkey\",\n  \"p_available_for_collaboration\": true\n}"
             },
             "url": "{{supabase_url}}/rest/v1/rpc/admin_create_complete_user",
-            "description": "✅ ADMIN CREATE USER - FIXED!\n\n🎯 Creates complete user with:\n✅ Avatar image\n✅ Full name\n✅ Username  \n✅ Email\n✅ Projects array\n✅ Auto-detected role (student)\n✅ Active status\n\n🔧 Fixed duplicate prevention!"
+            "description": "✅ ADMIN CREATE USER - WITH PROFESSIONAL FIELDS!\n\n🎯 Creates complete user with:\n✅ Avatar image, Full name, Username, Email\n✅ Projects array, Auto-detected role (student), Active status\n✅ Bio, Institution, Department, Title\n✅ ORCID ID, LinkedIn, Website\n✅ Expertise areas, Skills, Location\n✅ Collaboration availability\n\n🔧 Fixed duplicate prevention!"
           },
           "event": [
             {
@@ -336,7 +464,7 @@
           ]
         },
         {
-          "name": "✅ Create Complete User - Researcher",
+          "name": "✅ Create Complete User - Researcher (WITH PROFESSIONAL FIELDS)",
           "request": {
             "method": "POST",
             "header": [
@@ -355,10 +483,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_email\": \"admin-created-researcher-{{$timestamp}}@karabuk.edu.tr\",\n  \"p_username\": \"admin_researcher_{{$timestamp}}\",\n  \"p_full_name\": \"Admin Created Researcher\",\n  \"p_avatar_url\": \"https://example.com/avatar-researcher.jpg\",\n  \"p_projects\": [\"Research Project Alpha\", \"Research Project Beta\"],\n  \"p_role\": null,\n  \"p_is_active\": true\n}"
+              "raw": "{\n  \"p_email\": \"admin-created-researcher-{{$timestamp}}@karabuk.edu.tr\",\n  \"p_username\": \"admin_researcher_{{$timestamp}}\",\n  \"p_full_name\": \"Dr. Admin Created Researcher\",\n  \"p_avatar_url\": \"https://example.com/avatar-researcher.jpg\",\n  \"p_projects\": [\"AI in Healthcare Research\", \"Sustainable Technology Development\"],\n  \"p_role\": null,\n  \"p_is_active\": true,\n  \"p_bio\": \"Senior researcher specializing in artificial intelligence applications in healthcare. Published 25+ papers in peer-reviewed journals. Leading interdisciplinary research projects.\",\n  \"p_institution\": \"Karabük University\",\n  \"p_department\": \"Computer Engineering\",\n  \"p_title\": \"Associate Professor\",\n  \"p_orcid_id\": \"0000-0002-1234-5678\",\n  \"p_linkedin_url\": \"https://linkedin.com/in/dr-researcher-profile\",\n  \"p_website_url\": \"https://researcher-academic-page.edu\",\n  \"p_expertise_areas\": [\"Artificial Intelligence\", \"Healthcare Technology\", \"Research Methodology\", \"Data Science\"],\n  \"p_skills\": [\"Research Design\", \"Grant Writing\", \"Team Leadership\", \"Publication\", \"Statistical Analysis\"],\n  \"p_location\": \"Karabük, Turkey\",\n  \"p_available_for_collaboration\": true\n}"
             },
             "url": "{{supabase_url}}/rest/v1/rpc/admin_create_complete_user",
-            "description": "🔬 ADMIN CREATE RESEARCHER - Auto-detects researcher role"
+            "description": "🔬 ADMIN CREATE RESEARCHER - WITH PROFESSIONAL FIELDS!\n\n✅ Auto-detects researcher role\n✅ Complete academic profile with bio, ORCID, expertise\n✅ Professional networking information\n✅ Research collaboration settings"
           },
           "event": [
             {
@@ -470,7 +598,7 @@
       "name": "📊 User Queries & Verification",
       "item": [
         {
-          "name": "📋 List All Users with Roles",
+          "name": "📋 List All Users with Complete Professional Data",
           "request": {
             "method": "GET",
             "header": [
@@ -484,17 +612,21 @@
               }
             ],
             "url": {
-              "raw": "{{supabase_url}}/rest/v1/users?select=id,email,username,full_name,avatar_url,projects,is_active,user_roles(role)",
+              "raw": "{{supabase_url}}/rest/v1/users?select=id,email,username,full_name,avatar_url,projects,is_active,bio,institution,department,title,orcid_id,linkedin_url,website_url,expertise_areas,skills,location,available_for_collaboration,user_roles(role)&order=created_at.desc",
               "host": ["{{supabase_url}}"],
               "path": ["rest", "v1", "users"],
               "query": [
                 {
                   "key": "select",
-                  "value": "id,email,username,full_name,avatar_url,projects,is_active,user_roles(role)"
+                  "value": "id,email,username,full_name,avatar_url,projects,is_active,bio,institution,department,title,orcid_id,linkedin_url,website_url,expertise_areas,skills,location,available_for_collaboration,user_roles(role)"
+                },
+                {
+                  "key": "order",
+                  "value": "created_at.desc"
                 }
               ]
             },
-            "description": "📊 GET ALL USERS WITH COMPLETE DATA\n\n✅ Shows all fields requested:\n- Avatar image\n- Full name\n- Username\n- Email\n- Projects\n- Role\n- Active status"
+            "description": "📊 GET ALL USERS WITH COMPLETE PROFESSIONAL DATA\n\n✅ Shows all fields including professional info:\n- Basic: Avatar, name, username, email\n- Professional: Bio, institution, department, title\n- Academic: ORCID, expertise areas, skills\n- Networking: LinkedIn, website, location\n- Settings: Projects, role, active status, collaboration availability"
           }
         },
         {
@@ -678,6 +810,196 @@
             ],
             "url": "{{supabase_url}}/rest/v1/user_roles?user_id=eq.{{user_id}}&select=*",
             "description": "🎭 CHECK MY ROLES\n\n✅ Shows all roles assigned to me:\n- admin, moderator, student, researcher, etc."
+          }
+        },
+        {
+          "name": "📝 Update Professional Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_user_id\": \"{{user_id}}\",\n  \"p_bio\": \"Updated professional bio - Passionate researcher in artificial intelligence with focus on ethical AI development.\",\n  \"p_institution\": \"Karabük University\",\n  \"p_department\": \"Computer Engineering\",\n  \"p_title\": \"Senior Research Associate\",\n  \"p_orcid_id\": \"0000-0003-9999-8888\",\n  \"p_linkedin_url\": \"https://linkedin.com/in/updated-profile\",\n  \"p_website_url\": \"https://my-research-website.com\",\n  \"p_expertise_areas\": [\"AI Ethics\", \"Machine Learning\", \"Natural Language Processing\"],\n  \"p_skills\": [\"Python\", \"TensorFlow\", \"Research\", \"Academic Writing\"],\n  \"p_location\": \"Karabük, Turkey\",\n  \"p_available_for_collaboration\": true\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/update_professional_profile",
+            "description": "📝 UPDATE PROFESSIONAL PROFILE\n\n✅ Updates professional fields:\n- Bio, Institution, Department, Title\n- ORCID ID, LinkedIn, Website\n- Expertise areas, Skills, Location\n- Collaboration availability"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Professional profile updated', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔍 Get Complete Profile with Professional Fields",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/users?id=eq.{{user_id}}&select=id,email,username,full_name,avatar_url,projects,is_active,bio,institution,department,title,orcid_id,linkedin_url,website_url,expertise_areas,skills,location,available_for_collaboration,user_roles(role)",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "users"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.{{user_id}}"
+                },
+                {
+                  "key": "select",
+                  "value": "id,email,username,full_name,avatar_url,projects,is_active,bio,institution,department,title,orcid_id,linkedin_url,website_url,expertise_areas,skills,location,available_for_collaboration,user_roles(role)"
+                }
+              ]
+            },
+            "description": "🔍 GET COMPLETE PROFILE WITH ALL PROFESSIONAL FIELDS\n\n✅ Returns complete user profile:\n- Basic info (name, email, avatar)\n- Professional info (bio, institution, title)\n- Academic info (ORCID, expertise, skills)\n- Networking info (LinkedIn, website)\n- Collaboration settings\n- User roles"
+          }
+        },
+        {
+          "name": "🔍 Search Users by Expertise",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"search_term\": \"Machine Learning\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/search_users_by_expertise",
+            "description": "🔍 SEARCH USERS BY EXPERTISE\n\n✅ Search criteria:\n- Expertise areas\n- Skills\n- Bio content\n- Job title\n- Department\n\n✅ Only shows active users available for collaboration"
+          }
+        },
+        {
+          "name": "🎯 Update Specific Fields (Direct PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updated_teacher52\",\n  \"full_name\": \"Dr. Teacher Fifty-Two\",\n  \"avatar_url\": \"https://example.com/teacher52-avatar.jpg\",\n  \"bio\": \"Experienced educator and researcher in computer science with focus on AI applications in education.\",\n  \"institution\": \"Karabük University\",\n  \"department\": \"Computer Engineering\",\n  \"title\": \"Associate Professor\",\n  \"orcid_id\": \"0000-0002-1234-5678\",\n  \"linkedin_url\": \"https://linkedin.com/in/teacher52\",\n  \"website_url\": \"https://teacher52-research.edu\",\n  \"expertise_areas\": [\"Educational Technology\", \"Artificial Intelligence\", \"Computer Science Education\"],\n  \"skills\": [\"Teaching\", \"Research\", \"Python\", \"Machine Learning\", \"Curriculum Development\"],\n  \"location\": \"Karabük, Turkey\",\n  \"available_for_collaboration\": true,\n  \"projects\": [\"AI in Education Project\", \"Student Assessment Platform\"]\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.c2ca3af3-01d4-428e-8563-90d1c8a8c8a7",
+            "description": "🎯 UPDATE SPECIFIC FIELDS (DIRECT PATCH)\n\n✅ Update ANY combination of fields:\n- Basic: username, full_name, avatar_url\n- Professional: bio, institution, department, title\n- Academic: orcid_id, expertise_areas, skills\n- Networking: linkedin_url, website_url, location\n- Settings: projects, available_for_collaboration\n\n💡 Only include fields you want to update!\n🔧 Replace the user ID in the URL with the target user"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Profile updated successfully', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "    console.log('✅ Profile fields updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🎯 Update Single Field Example - Bio Only",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Just updated my bio! Senior researcher passionate about AI ethics and educational technology.\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.c2ca3af3-01d4-428e-8563-90d1c8a8c8a7",
+            "description": "🎯 UPDATE SINGLE FIELD EXAMPLE\n\n✅ Update just one field (bio in this case)\n💡 You can update ANY single field this way:\n- bio, institution, title, skills, etc.\n🔧 Replace the user ID with your target user"
+          }
+        },
+        {
+          "name": "🎯 Update Multiple Professional Fields",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution\": \"Karabük University\",\n  \"department\": \"Computer Engineering\",\n  \"title\": \"Associate Professor\",\n  \"expertise_areas\": [\"Artificial Intelligence\", \"Machine Learning\", \"Educational Technology\"],\n  \"skills\": [\"Python\", \"Research\", \"Teaching\", \"Data Analysis\"]\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.c2ca3af3-01d4-428e-8563-90d1c8a8c8a7",
+            "description": "🎯 UPDATE MULTIPLE PROFESSIONAL FIELDS\n\n✅ Update several related fields at once\n💡 Perfect for completing a professional profile\n🔧 Replace the user ID with your target user"
           }
         }
       ]
