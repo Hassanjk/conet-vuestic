@@ -1,0 +1,352 @@
+# Add PostgreSQL repo
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+
+# Install PostgreSQL client 17
+sudo apt-get install -y postgresql-client-17
+
+so stack over flow suggest :
+Check the installed version(s) of pg_dump:
+
+find / -name pg_dump -type f 2>/dev/null
+My output was:
+
+/usr/pgsql-9.3/bin/pg_dump
+/usr/bin/pg_dump
+There are two versions installed. To update pg_dump with the newer version:
+
+sudo ln -s /usr/pgsql-9.3/bin/pg_dump /usr/bin/pg_dump --force
+
+my output :
+
+Visit https://cloud.google.com/shell/help for more information.                 
+********************************************************************************
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  libpq-dev libpq5
+Suggested packages:
+  postgresql-doc-18 libpq-oauth postgresql-17 postgresql-doc-17
+The following NEW packages will be installed:
+  postgresql-client-17
+The following packages will be upgraded:
+  libpq-dev libpq5
+2 upgraded, 1 newly installed, 0 to remove and 42 not upgraded.
+Need to get 2,428 kB of archives.
+After this operation, 10.8 MB of additional disk space will be used.
+Get:1 http://apt.postgresql.org/pub/repos/apt noble-pgdg/main amd64 libpq-dev amd64 18.0-1.pgdg24.04+3 [163 kB]
+Get:2 http://apt.postgresql.org/pub/repos/apt noble-pgdg/main amd64 libpq5 amd64 18.0-1.pgdg24.04+3 [248 kB]
+Get:3 http://apt.postgresql.org/pub/repos/apt noble-pgdg/main amd64 postgresql-client-17 amd64 17.6-2.pgdg24.04+1 [2,017 kB]
+Fetched 2,428 kB in 0s (29.4 MB/s)              
+debconf: delaying package configuration, since apt-utils is not installed
+(Reading database ... 128682 files and directories currently installed.)
+Preparing to unpack .../libpq-dev_18.0-1.pgdg24.04+3_amd64.deb ...
+Unpacking libpq-dev (18.0-1.pgdg24.04+3) over (16.10-0ubuntu0.24.04.1) ...
+Preparing to unpack .../libpq5_18.0-1.pgdg24.04+3_amd64.deb ...
+Unpacking libpq5:amd64 (18.0-1.pgdg24.04+3) over (16.10-0ubuntu0.24.04.1) ...
+Selecting previously unselected package postgresql-client-17.
+Preparing to unpack .../postgresql-client-17_17.6-2.pgdg24.04+1_amd64.deb ...
+Unpacking postgresql-client-17 (17.6-2.pgdg24.04+1) ...
+Setting up libpq5:amd64 (18.0-1.pgdg24.04+3) ...
+Setting up libpq-dev (18.0-1.pgdg24.04+3) ...
+Setting up postgresql-client-17 (17.6-2.pgdg24.04+1) ...
+update-alternatives: using /usr/share/postgresql/17/man/man1/psql.1.gz to provide /usr/share/man/man1/psql.1.gz (psql.1.gz) in auto mode
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for postgresql-common (285.pgdg24.04+1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 79.)
+debconf: falling back to frontend: Readline
+Building PostgreSQL dictionaries from installed myspell/hunspell packages...
+Removing obsolete dictionary files:
+Processing triggers for libc-bin (2.39-0ubuntu8.6) ...
+hassanmdala52@cloudshell:~$ find / -name pg_dump -type f 2>/dev/null
+/usr/lib/postgresql/16/bin/pg_dump
+/usr/lib/postgresql/17/bin/pg_dump
+
+hassanmdala52@cloudshell:~$ 
+hassanmdala52@cloudshell:~$ 
+ChatGPT said:
+
+Got it — you now have two versions of pg_dump installed:
+
+/usr/lib/postgresql/16/bin/pg_dump
+/usr/lib/postgresql/17/bin/pg_dump
+
+
+This is similar to what the Stack Overflow post describes. The idea is that when you run pg_dump from the shell, it will use whichever version is found first in your PATH. Currently, it’s likely pointing to PostgreSQL 16’s pg_dump.
+
+If you want the system to use pg_dump version 17 by default, you have a few options:
+
+Option 1: Use update-alternatives
+
+This is the cleaner way:
+
+sudo update-alternatives --install /usr/bin/pg_dump pg_dump /usr/lib/postgresql/16/bin/pg_dump 160
+sudo update-alternatives --install /usr/bin/pg_dump pg_dump /usr/lib/postgresql/17/bin/pg_dump 170
+sudo update-alternatives --config pg_dump
+
+
+The last command will show a menu where you can pick the default version.
+
+After that, pg_dump --version should show 17.x.
+
+Option 2: Use a symlink
+
+If you just want a quick fix:
+
+sudo ln -sf /usr/lib/postgresql/17/bin/pg_dump /usr/bin/pg_dump
+
+
+-sf forces the symlink to point to version 17.
+
+pg_dump --version should now show 17.
+
+Option 3: Call full path when needed
+
+You can leave both versions and just use the full path:
+
+/usr/lib/postgresql/17/bin/pg_dump -h host -U user -d dbname > dump.sql
+
+
+✅ Tip: You can do the same for psql if you want to switch the default client.
+
+If you want, I can give you a one-liner to switch all PostgreSQL binaries to version 17 using update-alternatives. It’s cleaner than symlinking each binary individually. Do you want me to do that?
+
+You said:
+e-alternatives: using /usr/lib/postgresql/16/bin/pg_dump to provide /usr/bin/pg_dump (pg_dump) in auto mode
+update-alternatives: using /usr/lib/postgresql/17/bin/pg_dump to provide /usr/bin/pg_dump (pg_dump) in auto mode
+There are 2 choices for the alternative pg_dump (providing /usr/bin/pg_dump).
+
+  Selection    Path                                Priority   Status
+------------------------------------------------------------
+* 0            /usr/lib/postgresql/17/bin/pg_dump   170       auto mode
+  1            /usr/lib/postgresql/16/bin/pg_dump   160       manual mode
+  2            /usr/lib/postgresql/17/bin/pg_dump   170       manual mode
+
+Press <enter> to keep the current choice[*], or type selection number: 
+ChatGPT said:
+
+Perfect — this means your system is already pointing to pg_dump version 17 by default (the * 0 line shows it’s selected in auto mode).
+
+You can confirm by running:
+
+pg_dump --version
+
+
+You should see something like:
+
+pg_dump (PostgreSQL) 17.6
+
+
+✅ At this point, you don’t need to do anything else unless you want to manually switch between versions. If you do, you can type 1 or 2 at that prompt and hit Enter to pick a version.
+
+Do you want me to show how to switch all PostgreSQL binaries (like psql, pg_restore, etc.) to version 17 using update-alternatives? It’s a neat way to avoid version conflicts.
+
+You said:
+is this the supbase dump file :
+hassanmdala52@cloudshell:~$ export PGPASSWORD='HZWzKDdf/t?Dia7'
+
+pg_dump -h aws-1-us-east-1.pooler.supabase.com \
+        -p 5432 \
+        -U postgres.qzilrmaurxfpxdhrtolf \
+        -d postgres \
+        -Fc \
+        -f ~/db_clusteer.backup
+
+i normally download it as .gz and use gunzip to make it bakup but s this the same ?
+ChatGPT said:
+
+Ah, yes — let’s carefully unpack this.
+
+Your command:
+
+export PGPASSWORD='HZWzKDdf/t?Dia7'
+
+pg_dump -h aws-1-us-east-1.pooler.supabase.com \
+        -p 5432 \
+        -U postgres.qzilrmaurxfpxdhrtolf \
+        -d postgres \
+        -Fc \
+        -f ~/db_clusteer.backup
+
+What it does:
+
+-h aws-1-us-east-1.pooler.supabase.com → Connects to your Supabase database.
+
+-p 5432 → Port number.
+
+-U postgres.qzilrmaurxfpxdhrtolf → Database username.
+
+-d postgres → Database name.
+
+-Fc → Custom format for the dump (PostgreSQL’s proprietary binary format).
+
+This is not a plain SQL file.
+
+It allows pg_restore to restore selectively (tables, schemas, etc.).
+
+-f ~/db_clusteer.backup → Output file.
+
+Important distinction:
+
+.backup from pg_dump -Fc is different from a .gz dump of plain SQL.
+
+You do not gunzip it — it’s already a binary format.
+
+To restore it, you use:
+
+pg_restore -h host -p 5432 -U username -d target_db ~/db_clusteer.backup
+
+
+If you had a .gz of a plain SQL dump, you would use:
+
+gunzip file.sql.gz
+psql -h host -U username -d target_db -f file.sql
+
+
+✅ Summary:
+
+.backup from -Fc → Use pg_restore, do not gunzip.
+
+.sql.gz → Plain SQL, use gunzip then psql.
+
+If you want, I can show a safe one-liner to restore your Supabase dump directly to another PostgreSQL database. It’s slightly different from the plain SQL method. Do you want me to do that?
+
+You said:
+i want to restore to here :
+psql -h aws-1-ap-south-1.pooler.supabase.com -p 5432 -d postgres -U postgres.satipqspqwlkarryceri the password is the same HZWzKDdf/t?Dia7
+ChatGPT said:
+
+Perfect — since your dump is in custom format (-Fc), you’ll use pg_restore instead of psql. Here’s the exact command for your target Supabase instance:
+
+export PGPASSWORD='HZWzKDdf/t?Dia7'
+
+pg_restore -h aws-1-ap-south-1.pooler.supabase.com \
+           -p 5432 \
+           -U postgres.satipqspqwlkarryceri \
+           -d postgres \
+           -Fc \
+           -v \
+           ~/db_clusteer.backup
+
+Explanation:
+
+-h → Target host
+
+-p → Port
+
+-U → Username
+
+-d → Target database (postgres)
+
+-Fc → Tells pg_restore the file is in custom format
+
+-v → Verbose mode (shows progress)
+
+~/db_clusteer.backup → Your dump file
+
+⚠️ Important notes:
+
+Supabase PostgreSQL does not allow creating databases. You must restore into an existing database (postgres in your case).
+
+If your dump includes roles or extensions, some may fail — that’s normal on Supabase.
+
+Make sure the database is empty or you might get conflicts. If it’s not empty, you can add --clean to drop objects before restoring:
+
+pg_restore --clean -h ... -d postgres ...
+
+
+If you want, I can give you a full safe command that restores all tables, schemas, and sequences without touching Supabase system restrictions — so it won’t fail halfway. Do you want me to do that?
+
+You said:
+so the restore db looks lke this :
+kk-project
+Free
+
+conet-backup
+
+main
+Production
+
+
+Connect
+Feedback
+
+
+
+
+
+wakilacassim-bot
+
+Database
+Database Management
+Schema Visualizer
+Tables
+Functions
+Triggers
+Enumerated Types
+Extensions
+Indexes
+Publications
+Replication
+Coming soon
+Configuration
+Roles
+Policies
+Settings
+Platform
+Backups
+Migrations
+Wrappers
+Webhooks
+Tools
+Security Advisor
+Performance Advisor
+Query Performance
+
+schema
+
+public
+
+
+Copy as SQL
+
+
+Auto layout
+No tables created yet
+There are no tables found in the schema "public"
+
+Create a new table
+ChatGPT said:
+
+Ah! I see exactly what you mean — your target Supabase database is completely empty. That’s actually perfect for restoring your dump, because there won’t be any conflicts.
+
+Here’s how you can safely restore your backup into this empty database:
+
+export PGPASSWORD='HZWzKDdf/t?Dia7'
+
+pg_restore -h aws-1-ap-south-1.pooler.supabase.com \
+           -p 5432 \
+           -U postgres.satipqspqwlkarryceri \
+           -d postgres \
+           -Fc \
+           -v \
+           ~/db_clusteer.backup
+
+Notes specific to Supabase:
+
+No existing tables → The restore will create all tables, sequences, functions, etc., from the dump.
+
+public schema → Your dump will likely restore everything into the public schema by default.
+
+Roles → Supabase won’t allow creating custom roles; you might see warnings about role creation — safe to ignore.
+
+Extensions → If your dump uses extensions not installed in Supabase, those objects will fail; again, safe to ignore if you’re not using them.
+
+✅ After running, refresh the Supabase dashboard — you should see all tables, functions, and other objects appear in the public schema.
+
+If you want, I can give you a version of this command that automatically drops any existing objects before restoring, just in case you run this on a non-empty database later. This is a safer “full restore” approach. Do you want me to do that?
+
+ChatGPT can make mistakes. Check important info.
