@@ -82,4 +82,5 @@
     "vue-tsc": "^2.1.6"
   },
   "packageManager": "yarn@4.9.2"
+
 }

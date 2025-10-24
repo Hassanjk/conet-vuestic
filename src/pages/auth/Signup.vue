@@ -94,7 +94,7 @@
           <span>Welcome</span>
         </span>
         <span class="text-base text-muted flex items-center gap-2">
-          <VaIcon name="flag" size="large" /> 
+          <VaIcon name="flag" size="large" />
           <span>Step {{ step }} of 3</span>
         </span>
       </VaCardTitle>
@@ -109,9 +109,7 @@
         <VaForm ref="onboard" @submit.prevent="nextStep">
           <!-- Step 1: Basic profile -->
           <div v-show="step === 1">
-            <p class="mb-6 text-lg text-muted flex items-center gap-2">
-              Tell us how you'd like others to see you.
-            </p>
+            <p class="mb-6 text-lg text-muted flex items-center gap-2">Tell us how you'd like others to see you.</p>
             <VaInput
               id="onboard-fullname"
               v-model="onboarding.full_name"
@@ -133,7 +131,7 @@
           <!-- Step 2: Skills -->
           <div v-show="step === 2">
             <p class="mb-6 text-lg text-muted flex items-center gap-2">
-              <VaIcon name="stars" /> Share 2–4 top skills  — keep it short.
+              <VaIcon name="stars" /> Share 2–4 top skills — keep it short.
             </p>
             <VaInput
               id="onboard-skills"
@@ -143,8 +141,8 @@
               class="mb-6 text-lg"
               size="large"
             />
-            <VaCheckbox 
-              v-model="onboarding.available_for_collaboration" 
+            <VaCheckbox
+              v-model="onboarding.available_for_collaboration"
               label="Available for collaboration"
               class="text-lg"
               size="large"
@@ -173,8 +171,8 @@
                 <VaIcon name="group" />
                 <strong>Available:</strong>
                 {{ onboarding.available_for_collaboration ? 'Yes' : 'No' }}
-                <VaIcon 
-                  :name="onboarding.available_for_collaboration ? 'check_circle' : 'cancel'" 
+                <VaIcon
+                  :name="onboarding.available_for_collaboration ? 'check_circle' : 'cancel'"
                   :color="onboarding.available_for_collaboration ? 'success' : 'danger'"
                   size="small"
                 />
@@ -338,8 +336,6 @@ function generateUsernameFromEmail(email: string) {
     .slice(0, 30)
 }
 
-
-
 const validateCurrentStep = () => {
   if (step.value === 1) {
     if (!onboarding.full_name && !onboarding.username) {
@@ -357,13 +353,13 @@ const validateCurrentStep = () => {
 
 const nextStep = async () => {
   console.log('nextStep called, current step:', step.value)
-  
+
   if (!validateCurrentStep()) return
-  
+
   if (step.value < 3) {
     step.value++
     console.log('Moving to step:', step.value)
-    
+
     // Focus the skills input on step 2 for smooth UX
     if (step.value === 2) {
       await nextTick()

@@ -278,7 +278,7 @@ export const useUserStore = defineStore('user', {
 
     async initializeAuth() {
       console.log('Initializing auth state...')
-      
+
       // Load tokens from localStorage if not already in store
       const storedAccessToken = localStorage.getItem('access_token')
       const storedRefreshToken = localStorage.getItem('refresh_token')
@@ -302,7 +302,7 @@ export const useUserStore = defineStore('user', {
 
       // Check if tokens are expired
       const isExpired = storedExpiresAt ? Date.now() > parseInt(storedExpiresAt) : true
-      
+
       if (isExpired && storedRefreshToken) {
         // Token expired, try to refresh
         console.log('Token expired, attempting refresh...')
@@ -317,7 +317,7 @@ export const useUserStore = defineStore('user', {
 
       // Set authentication state
       this.isAuthenticated = true
-      
+
       // Try to get user profile if we don't have it
       if (!this.user && storedUserId) {
         try {
@@ -334,7 +334,7 @@ export const useUserStore = defineStore('user', {
           }
         }
       }
-      
+
       console.log('Auth initialization complete. Authenticated:', this.isAuthenticated)
     },
   },

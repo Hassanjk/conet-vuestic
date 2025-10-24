@@ -3,7 +3,7 @@
   <div class="flex flex-col space-y-6">
     <!-- LinkedIn-style Profile Header -->
     <PreferencesHeader @editProfile="isEditProfileModalOpen = true" />
-    
+
     <!-- Profile Settings -->
     <div class="bg-backgroundSecondary rounded-lg p-6">
       <Settings

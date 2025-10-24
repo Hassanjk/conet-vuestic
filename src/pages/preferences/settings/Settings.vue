@@ -14,31 +14,39 @@
       <VaCardContent>
         <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
           <!-- Full Name -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Full Name</div>
               <div class="text-secondary">{{ store.currentUser?.full_name || store.userName || 'Not specified' }}</div>
             </div>
           </div>
-          
+
           <!-- Username -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Username</div>
               <div class="text-secondary">{{ store.currentUser?.username || 'Not specified' }}</div>
             </div>
           </div>
-          
+
           <!-- Professional Title -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Professional Title</div>
               <div class="text-secondary">{{ store.currentUser?.title || 'Not specified' }}</div>
             </div>
           </div>
-          
+
           <!-- Bio -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Bio</div>
               <div class="text-secondary italic">{{ store.currentUser?.bio || 'No bio added yet' }}</div>
@@ -59,31 +67,39 @@
       <VaCardContent>
         <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
           <!-- Institution -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Institution</div>
               <div class="text-secondary">{{ store.currentUser?.institution || 'Not specified' }}</div>
             </div>
           </div>
-          
+
           <!-- Department -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Department</div>
               <div class="text-secondary">{{ store.currentUser?.department || 'Not specified' }}</div>
             </div>
           </div>
-          
+
           <!-- Location -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Location</div>
               <div class="text-secondary">{{ store.currentUser?.location || 'Not specified' }}</div>
             </div>
           </div>
-          
+
           <!-- Role -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Role</div>
               <div class="text-secondary">
@@ -108,42 +124,41 @@
         <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
           <template v-if="store.currentUser?.expertise_areas?.length || store.currentUser?.skills?.length">
             <!-- Expertise Areas -->
-            <div v-if="store.currentUser?.expertise_areas?.length" class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2">
+            <div
+              v-if="store.currentUser?.expertise_areas?.length"
+              class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2"
+            >
               <div class="flex flex-col gap-2 flex-grow">
                 <div class="text-lg font-bold">Expertise Areas</div>
                 <div class="flex flex-wrap gap-2">
-                  <VaChip
-                    v-for="area in store.currentUser.expertise_areas"
-                    :key="area"
-                    color="success"
-                    size="small"
-                  >
+                  <VaChip v-for="area in store.currentUser.expertise_areas" :key="area" color="success" size="small">
                     {{ area }}
                   </VaChip>
                 </div>
               </div>
             </div>
-            
+
             <!-- Skills -->
-            <div v-if="store.currentUser?.skills?.length" class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2">
+            <div
+              v-if="store.currentUser?.skills?.length"
+              class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 md:col-span-2"
+            >
               <div class="flex flex-col gap-2 flex-grow">
                 <div class="text-lg font-bold">Skills</div>
                 <div class="flex flex-wrap gap-2">
-                  <VaChip
-                    v-for="skill in store.currentUser.skills"
-                    :key="skill"
-                    color="info"
-                    size="small"
-                  >
+                  <VaChip v-for="skill in store.currentUser.skills" :key="skill" color="info" size="small">
                     {{ skill }}
                   </VaChip>
                 </div>
               </div>
             </div>
           </template>
-          
+
           <template v-else>
-            <div class="sm:min-h-[114px] p-4 rounded-lg border border-dashed border-primary flex flex-col sm:flex-row items-start sm:items-center gap-4 md:col-span-2" :style="{ backgroundColor: colorToRgba(getColor('primary'), 0.07) }">
+            <div
+              class="sm:min-h-[114px] p-4 rounded-lg border border-dashed border-primary flex flex-col sm:flex-row items-start sm:items-center gap-4 md:col-span-2"
+              :style="{ backgroundColor: colorToRgba(getColor('primary'), 0.07) }"
+            >
               <div class="flex flex-col gap-2 flex-grow">
                 <div class="text-lg font-bold leading-relaxed">No skills added yet</div>
                 <div class="text-secondary text-sm leading-tight">
@@ -168,13 +183,15 @@
       <VaCardContent>
         <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
           <!-- Email -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="flex items-center">
                 <div class="text-lg font-bold">Email</div>
-                <VaBadge 
-                  v-if="store.currentUser?.status" 
-                  :text="store.currentUser.status" 
+                <VaBadge
+                  v-if="store.currentUser?.status"
+                  :text="store.currentUser.status"
                   :color="store.currentUser.status === 'ONLINE' ? 'success' : 'secondary'"
                   class="ml-2"
                 />
@@ -182,10 +199,10 @@
               <div class="text-secondary">{{ store.email }}</div>
             </div>
           </div>
-          
+
           <!-- LinkedIn -->
-          <div 
-            v-if="store.currentUser?.linkedin_url" 
+          <div
+            v-if="store.currentUser?.linkedin_url"
             class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 cursor-pointer hover:bg-gray-50"
             @click="openExternalLink(store.currentUser.linkedin_url)"
           >
@@ -197,9 +214,9 @@
               <VaButton preset="primary" icon="mso-open_in_new">Visit</VaButton>
             </div>
           </div>
-          
+
           <!-- Website -->
-          <div 
+          <div
             v-if="store.currentUser?.website_url"
             class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 cursor-pointer hover:bg-gray-50"
             @click="openExternalLink(store.currentUser.website_url)"
@@ -212,9 +229,9 @@
               <VaButton preset="primary" icon="mso-open_in_new">Visit</VaButton>
             </div>
           </div>
-          
+
           <!-- ORCID -->
-          <div 
+          <div
             v-if="store.currentUser?.orcid_id"
             class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6 cursor-pointer hover:bg-gray-50"
             @click="openExternalLink(`https://orcid.org/${store.currentUser.orcid_id}`)"
@@ -242,7 +259,9 @@
       <VaCardContent>
         <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
           <!-- Password -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Password</div>
               <div class="text-secondary">Last updated recently</div>
@@ -253,7 +272,9 @@
           </div>
 
           <!-- Two-Factor Authentication -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Two-Factor Authentication</div>
               <div class="text-secondary">{{ twoFA.content }}</div>
@@ -264,7 +285,9 @@
           </div>
 
           <!-- Collaboration Status -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="flex items-center">
                 <div class="text-lg font-bold">Collaboration Status</div>
@@ -275,17 +298,19 @@
                 />
               </div>
               <div class="text-secondary">
-                {{ 
-                  store.currentUser?.available_for_collaboration 
-                    ? 'Available for collaboration' 
-                    : 'Not available for collaboration' 
+                {{
+                  store.currentUser?.available_for_collaboration
+                    ? 'Available for collaboration'
+                    : 'Not available for collaboration'
                 }}
               </div>
             </div>
           </div>
 
           <!-- Email Subscriptions -->
-          <div class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div
+            class="min-h-[114px] p-4 rounded-lg border border-dashed border-backgroundBorder flex flex-col sm:flex-row items-start sm:items-center gap-6"
+          >
             <div class="flex flex-col gap-2 flex-grow">
               <div class="text-lg font-bold">Email Subscriptions</div>
               <div class="text-secondary">Manage your notification preferences</div>

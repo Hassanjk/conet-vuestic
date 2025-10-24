@@ -26,7 +26,7 @@ export class AuthService {
   async signup(credentials: SignupRequest): Promise<AuthResponse> {
     try {
       console.log('🔄 Starting signup process...')
-      
+
       // Step 1: Sign up the user
       const response = await apiClient.getAuthClient().signup(credentials)
 
@@ -167,7 +167,7 @@ export class AuthService {
         // Profile doesn't exist - try to sync it
         console.log('⚠️ Profile not found, attempting sync...')
         const syncResult = await this.syncUserProfile(userId)
-        
+
         if (syncResult.success) {
           // Try again after sync
           try {
@@ -183,7 +183,7 @@ export class AuthService {
         return { success: false, error: error.message }
       }
     }
-    
+
     return { success: false, error: 'Profile not found and sync failed' }
   }
 

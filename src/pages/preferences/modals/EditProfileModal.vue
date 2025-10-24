@@ -23,13 +23,7 @@
           <VaInput v-model="formData.title" label="Professional Title" placeholder="e.g., Professor, Researcher" />
         </div>
 
-        <VaTextarea
-          v-model="formData.bio"
-          label="Bio"
-          placeholder="Tell us about yourself..."
-          :max-rows="3"
-          autosize
-        />
+        <VaTextarea v-model="formData.bio" label="Bio" placeholder="Tell us about yourself..." :max-rows="3" autosize />
 
         <!-- Professional Information -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
