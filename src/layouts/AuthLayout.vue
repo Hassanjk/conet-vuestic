@@ -1,9 +1,12 @@
 <template>
-  <VaLayout v-if="breakpoint.lgUp" class="h-screen bg-[var(--va-background-secondary)]">
+  <VaLayout v-if="breakpoint.lgUp" class="h-screen">
     <template #left>
       <RouterLink
-        class="bg-primary h-full flex items-center justify-center"
-        style="width: 35vw"
+        class="h-full flex items-center justify-center bg-blend-overlay relative"
+        :style="{
+          width: '65vw',
+          background: 'linear-gradient(rgba(14, 65, 201, 0.8), rgba(14, 65, 201, 0.8)), url(/karabuk.jpg) center/cover',
+        }"
         to="/"
         aria-label="Visit homepage"
       >
@@ -11,13 +14,19 @@
       </RouterLink>
     </template>
     <template #content>
-      <main class="h-full flex items-center justify-center mx-auto max-w-[420px]">
+      <main class="h-full flex items-center justify-center mx-auto" style="max-width: 35vw">
         <RouterView />
       </main>
     </template>
   </VaLayout>
 
-  <VaLayout v-else class="h-screen bg-[var(--va-background-secondary)]">
+  <VaLayout
+    v-else
+    class="h-screen relative"
+    :style="{
+      background: 'linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url(/karabuk.jpg) center/cover',
+    }"
+  >
     <template #content>
       <div class="p-4">
         <main class="h-full flex flex-row items-center justify-start mx-auto max-w-[420px]">

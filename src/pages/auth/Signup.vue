@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <VaForm v-if="!showOnboarding" ref="form" @submit.prevent="submit">
+  <div class="w-full max-w-[420px]">
+    <VaForm v-if="!showOnboarding" ref="form" class="w-full" @submit.prevent="submit">
       <h1 class="font-semibold text-4xl mb-4">Sign up</h1>
       <p class="text-base mb-4 leading-5">
         Have an account?
@@ -87,8 +87,8 @@
     </VaForm>
 
     <!-- Progressive 3-step Onboarding card -->
-    <VaCard v-if="showOnboarding" class="mt-8 max-w-2xl mx-auto">
-      <VaCardTitle class="flex items-center justify-between px-8 py-6">
+    <VaCard v-if="showOnboarding" class="mt-8 w-full">
+      <VaCardTitle class="flex items-center justify-between px-6 py-4">
         <span class="text-2xl font-semibold flex items-center gap-3">
           <VaIcon name="account_circle" size="large" color="primary" class="text-[2.5rem]" />
           <span>Welcome</span>
@@ -99,7 +99,7 @@
         </span>
       </VaCardTitle>
 
-      <VaCardContent class="px-8 pb-8">
+      <VaCardContent class="px-6 pb-6">
         <div class="mb-6">
           <div class="w-full h-3 bg-[rgba(0,0,0,0.08)] rounded-full overflow-hidden">
             <div class="h-full bg-primary" :style="{ width: `${Math.round((step / 3) * 100)}%` }"></div>
