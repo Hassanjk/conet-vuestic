@@ -88,6 +88,8 @@ const roleSelectOptions: { text: Capitalize<Lowercase<UserRole>>; value: UserRol
   { text: 'Admin', value: 'admin' },
   { text: 'User', value: 'user' },
   { text: 'Owner', value: 'owner' },
+  { text: 'Student', value: 'student' },
+  { text: 'Researcher', value: 'researcher' },
 ]
 </script>
 

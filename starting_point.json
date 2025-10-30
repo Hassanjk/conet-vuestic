@@ -1226,7 +1226,7 @@
               }
             ],
             "url": "{{supabase_url}}/rest/v1/users?select=*,user_roles(role)&order=created_at.desc",
-            "description": "👑 ADMIN: GET ALL USERS\n\n✅ Complete user directory with:\n- All profile information\n- Roles and permissions\n- Account status\n- Creation dates"
+            "description": "👑 ADMIN: GET ALL USERS\n\n✅ Complete user directory with:\n- All profile information\n- Roles and permissions\n- Account status\n- Creation dates (newest first)\n\n✅ Now includes timestamp columns!"
           }
         },
         {
@@ -1415,6 +1415,96 @@
             },
             "url": "{{supabase_url}}/rest/v1/users?id=eq.REPLACE_WITH_USER_ID",
             "description": "👑 ADMIN: REACTIVATE USER\n\n✅ Restores user account\n📝 Replace REPLACE_WITH_USER_ID with actual user ID"
+          }
+        },
+        {
+          "name": "🗑️ Admin Delete User (Permanent)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.REPLACE_WITH_USER_ID",
+            "description": "🗑️ ADMIN: DELETE USER (PERMANENT)\n\n⚠️ DANGER: This permanently deletes the user!\n✅ Removes user from users table\n✅ Cascades to remove user_roles\n✅ Cannot be undone\n\n📝 Replace REPLACE_WITH_USER_ID with actual user ID\n💡 Consider using 'Deactivate User' instead for reversible suspension"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('User deleted successfully', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "    console.log('⚠️ User permanently deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔄 Change User Active Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/users?id=eq.REPLACE_WITH_USER_ID",
+            "description": "🔄 ADMIN: CHANGE USER ACTIVE STATUS\n\n✅ Toggle user active status:\n- true = Active user (can access system)\n- false = Inactive user (suspended)\n\n📝 Replace REPLACE_WITH_USER_ID with actual user ID\n💡 Change the body value to true/false as needed"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('User status updated', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "    console.log('✅ User active status changed');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "📊 Get Inactive Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": "{{supabase_url}}/rest/v1/users?is_active=eq.false&select=id,email,username,full_name,is_active,created_at,user_roles(role)",
+            "description": "📊 ADMIN: GET INACTIVE USERS\n\n✅ Lists all deactivated/suspended users\n✅ Shows when they were created\n✅ Shows their roles\n\n💡 Use this to review suspended accounts"
           }
         }
       ]

@@ -301,6 +301,28 @@ export class AuthService {
     await apiClient.getRestClient().users.update(userId, { is_active: true, status: 'ONLINE' })
   }
 
+  /**
+   * Admin Delete User - Maps to "DELETE {{supabase_url}}/rest/v1/users?id=eq.{{user_id}}"
+   * DELETE {{supabase_url}}/rest/v1/users?id=eq.{{user_id}}
+   */
+  async adminDeleteUser(userId: string): Promise<void> {
+    await apiClient.getRestClient().users.delete(userId)
+  }
+
+  /**
+   * Admin Bulk Delete Users - Maps to "DELETE {{supabase_url}}/rest/v1/users?id=in.(user_id_1,user_id_2,user_id_3)"
+   * DELETE {{supabase_url}}/rest/v1/users?id=in.(comma,separated,ids)
+   */
+  async adminBulkDeleteUsers(userIds: string[]): Promise<void> {
+    if (userIds.length === 0) return
+    
+    const idsParam = `id=in.(${userIds.join(',')})`
+    await apiClient.getRestClient().request({
+      method: 'DELETE',
+      url: `/rest/v1/users?${idsParam}`,
+    })
+  }
+
   // 🛠️ Utility Methods
 
   /**

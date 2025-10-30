@@ -33,6 +33,14 @@ export const useUsers = (options?: {
     }
   }
 
+  const fetchStats = async () => {
+    try {
+      await usersStore.getStats()
+    } catch (error) {
+      console.error('Failed to fetch user stats:', error)
+    }
+  }
+
   watch(
     filters,
     () => {
@@ -44,6 +52,7 @@ export const useUsers = (options?: {
   )
 
   fetch()
+  fetchStats() // Fetch stats on initialization
 
   const users = computed(() => {
     const getSortItem = (obj: any, sortBy: string) => {
@@ -75,6 +84,8 @@ export const useUsers = (options?: {
     return paginated
   })
 
+  const stats = computed(() => usersStore.stats)
+
   return {
     error,
     isLoading,
@@ -83,8 +94,10 @@ export const useUsers = (options?: {
     pagination,
 
     users,
+    stats,
 
     fetch,
+    fetchStats,
 
     async add(user: User) {
       isLoading.value = true
@@ -112,6 +125,17 @@ export const useUsers = (options?: {
       isLoading.value = true
       try {
         return await usersStore.remove(user)
+      } catch (e) {
+        error.value = e
+      } finally {
+        isLoading.value = false
+      }
+    },
+
+    async bulkRemove(users: User[]) {
+      isLoading.value = true
+      try {
+        return await usersStore.bulkRemove(users)
       } catch (e) {
         error.value = e
       } finally {

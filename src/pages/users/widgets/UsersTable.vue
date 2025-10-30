@@ -12,6 +12,7 @@ const columns = defineVaDataTableColumns([
   { label: 'Email', key: 'email', sortable: true },
   { label: 'Username', key: 'username', sortable: true },
   { label: 'Role', key: 'role', sortable: true },
+  { label: 'Status', key: 'status', sortable: true },
   { label: 'Projects', key: 'projects', sortable: true },
   { label: ' ', key: 'actions', align: 'right' },
 ])
@@ -29,6 +30,7 @@ const props = defineProps({
   pagination: { type: Object as PropType<Pagination>, required: true },
   sortBy: { type: String as PropType<Sorting['sortBy']>, required: true },
   sortingOrder: { type: String as PropType<Sorting['sortingOrder']>, default: null },
+  selectedUsers: { type: Array as PropType<User[]>, default: () => [] },
 })
 
 const emit = defineEmits<{
@@ -36,16 +38,20 @@ const emit = defineEmits<{
   (event: 'delete-user', user: User): void
   (event: 'update:sortBy', sortBy: Sorting['sortBy']): void
   (event: 'update:sortingOrder', sortingOrder: Sorting['sortingOrder']): void
+  (event: 'update:selectedUsers', users: User[]): void
 }>()
 
 const users = toRef(props, 'users')
 const sortByVModel = useVModel(props, 'sortBy', emit)
 const sortingOrderVModel = useVModel(props, 'sortingOrder', emit)
+const selectedUsersVModel = useVModel(props, 'selectedUsers', emit)
 
 const roleColors: Record<UserRole, string> = {
   admin: 'danger',
   user: 'background-element',
   owner: 'warning',
+  student: 'info',
+  researcher: 'success',
 }
 
 const totalPages = computed(() => Math.ceil(props.pagination.total / props.pagination.perPage))
@@ -54,9 +60,9 @@ const { confirm } = useModal()
 
 const onUserDelete = async (user: User) => {
   const agreed = await confirm({
-    title: 'Delete user',
-    message: `Are you sure you want to delete ${user.fullname}?`,
-    okText: 'Delete',
+    title: 'Permanently Delete User',
+    message: `Are you sure you want to permanently delete ${user.fullname}? This action cannot be undone.`,
+    okText: 'Delete Permanently',
     cancelText: 'Cancel',
     size: 'small',
     maxWidth: '380px',
@@ -98,9 +104,13 @@ const formatProjectNames = (projects: Project['id'][]) => {
   <VaDataTable
     v-model:sort-by="sortByVModel"
     v-model:sorting-order="sortingOrderVModel"
+    v-model:selected-items="selectedUsersVModel"
     :columns="columns"
     :items="users"
     :loading="$props.loading"
+    selectable
+    select-mode="multiple"
+    :item-key="(item) => item.id"
   >
     <template #cell(fullname)="{ rowData }">
       <div class="flex items-center gap-2 max-w-[230px] ellipsis">
@@ -123,6 +133,23 @@ const formatProjectNames = (projects: Project['id'][]) => {
 
     <template #cell(role)="{ rowData }">
       <VaBadge :text="rowData.role" :color="roleColors[rowData.role as UserRole]" />
+    </template>
+
+    <template #cell(status)="{ rowData }">
+      <div class="flex items-center gap-2">
+        <VaBadge
+          :text="rowData.active ? 'Active' : 'Inactive'"
+          :color="rowData.active ? 'success' : 'warning'"
+          class="mr-1"
+        />
+        <VaBadge
+          v-if="rowData.active"
+          :text="rowData.status === 'ONLINE' ? 'Online' : 'Offline'"
+          :color="rowData.status === 'ONLINE' ? 'info' : 'secondary'"
+          variant="outline"
+          size="small"
+        />
+      </div>
     </template>
 
     <template #cell(projects)="{ rowData }">
