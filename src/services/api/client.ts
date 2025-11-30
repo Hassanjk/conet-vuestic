@@ -189,5 +189,6 @@ class ApiClient {
 // Create singleton instance
 const apiClient = new ApiClient()
 
+// Export both default and named export for compatibility
 export default apiClient
-export { ApiClient }
+export { apiClient, ApiClient }

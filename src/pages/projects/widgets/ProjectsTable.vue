@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { PropType, computed, inject } from 'vue'
 import { defineVaDataTableColumns } from 'vuestic-ui'
-import { Project } from '../types'
+import { ProjectViewModel } from '../types'
 import UserAvatar from '../../users/widgets/UserAvatar.vue'
 import ProjectStatusBadge from '../components/ProjectStatusBadge.vue'
 import { Pagination, Sorting } from '../../../data/pages/projects'
 import { useVModel } from '@vueuse/core'
 
 const columns = defineVaDataTableColumns([
-  { label: 'Project name', key: 'project_name', sortable: true },
-  { label: 'Project owner', key: 'project_owner', sortable: true },
+  { label: 'Project Title', key: 'title', sortable: true },
+  { label: 'Field Type', key: 'field_type', sortable: true },
+  { label: 'Project Owner', key: 'project_owner', sortable: true },
   { label: 'Team', key: 'team', sortable: true },
   { label: 'Status', key: 'status', sortable: true },
   { label: 'Creation Date', key: 'created_at', sortable: true },
@@ -18,7 +19,7 @@ const columns = defineVaDataTableColumns([
 
 const props = defineProps({
   projects: {
-    type: Array as PropType<Project[]>,
+    type: Array as PropType<ProjectViewModel[]>,
     required: true,
   },
   loading: {
@@ -40,8 +41,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (event: 'edit', project: Project): void
-  (event: 'delete', project: Project): void
+  (event: 'edit', project: ProjectViewModel): void
+  (event: 'delete', project: ProjectViewModel): void
 }>()
 
 const sortByVModel = useVModel(props, 'sortBy', emit)
@@ -60,10 +61,13 @@ const { getUserById, getTeamOptions } = inject<any>('ProjectsPage')
       :columns="columns"
       :loading="loading"
     >
-      <template #cell(project_name)="{ rowData }">
+      <template #cell(title)="{ rowData }">
         <div class="ellipsis max-w-[230px] lg:max-w-[450px]">
-          {{ rowData.project_name }}
+          {{ rowData.title }}
         </div>
+      </template>
+      <template #cell(field_type)="{ rowData }">
+        <VaBadge :text="rowData.field_type" color="primary" />
       </template>
       <template #cell(project_owner)="{ rowData }">
         <div v-if="getUserById(rowData.project_owner)" class="flex items-center gap-2 ellipsis max-w-[230px]">
@@ -75,7 +79,7 @@ const { getUserById, getTeamOptions } = inject<any>('ProjectsPage')
         <VaAvatarGroup size="small" :options="getTeamOptions(project.team)" :max="5" />
       </template>
       <template #cell(status)="{ rowData: project }">
-        <ProjectStatusBadge :status="project.status" />
+        <ProjectStatusBadge :status="project.displayStatus" />
       </template>
 
       <template #cell(created_at)="{ rowData: project }">
@@ -90,7 +94,7 @@ const { getUserById, getTeamOptions } = inject<any>('ProjectsPage')
             color="primary"
             icon="mso-edit"
             aria-label="Edit project"
-            @click="$emit('edit', project as Project)"
+            @click="$emit('edit', project as ProjectViewModel)"
           />
           <VaButton
             preset="primary"
@@ -98,7 +102,7 @@ const { getUserById, getTeamOptions } = inject<any>('ProjectsPage')
             icon="mso-delete"
             color="danger"
             aria-label="Delete project"
-            @click="$emit('delete', project as Project)"
+            @click="$emit('delete', project as ProjectViewModel)"
           />
         </div>
       </template>

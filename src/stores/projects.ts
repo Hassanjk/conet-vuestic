@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import { addProject, getProjects, Pagination, removeProject, Sorting, updateProject } from '../data/pages/projects'
-import { Project } from '../pages/projects/types'
+import { ProjectViewModel } from '../pages/projects/types'
 
 export const useProjectsStore = defineStore('projects', {
   state: () => {
     return {
-      items: [] as Project[],
+      items: [] as ProjectViewModel[],
       pagination: {
         page: 1,
         perPage: 10,
@@ -24,23 +24,27 @@ export const useProjectsStore = defineStore('projects', {
       this.pagination = pagination
     },
 
-    async add(project: Omit<Project, 'id' | 'created_at'>) {
+    async add(project: Partial<ProjectViewModel>) {
       const [newProject] = await addProject(project)
       this.items.push(newProject)
     },
 
-    async update(project: Project) {
+    async update(project: ProjectViewModel) {
       const [updatedProject] = await updateProject(project)
       const index = this.items.findIndex(({ id }) => id === project.id)
-      this.items.splice(index, 1, updatedProject)
+      if (index !== -1) {
+        this.items.splice(index, 1, updatedProject)
+      }
     },
 
-    async remove(project: Project) {
+    async remove(project: ProjectViewModel) {
       const isRemoved = await removeProject(project)
 
       if (isRemoved) {
         const index = this.items.findIndex(({ id }) => id === project.id)
-        this.items.splice(index, 1)
+        if (index !== -1) {
+          this.items.splice(index, 1)
+        }
       }
     },
   },

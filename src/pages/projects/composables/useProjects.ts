@@ -1,6 +1,6 @@
 import { Ref, ref, unref, computed } from 'vue'
 import { Sorting, Pagination } from '../../../data/pages/projects'
-import { Project } from '../types'
+import { ProjectViewModel } from '../types'
 import { useProjectsStore } from '../../../stores/projects'
 import { useProjectUsers } from './useProjectUsers'
 
@@ -32,19 +32,23 @@ export const useProjects = (options?: { sorting?: Ref<Sorting>; pagination?: Ref
     )
 
     const getSortItem = (obj: any, sortBy: Sorting['sortBy']) => {
-      if (sortBy === 'project_owner') {
-        return getUserById(obj.project_owner)?.fullname
+      if (sortBy === 'created_by') {
+        return getUserById(obj.created_by)?.fullname || ''
+      }
+
+      if (sortBy === 'title') {
+        return obj.title || ''
       }
 
       if (sortBy === 'team') {
-        return obj.team.map((user: any) => getUserById(user)?.fullname || '').join(', ')
+        return (obj.team || []).map((user: any) => getUserById(user)?.fullname || '').join(', ')
       }
 
       if (sortBy === 'created_at') {
-        return new Date(obj[sortBy])
+        return new Date(obj[sortBy] || Date.now())
       }
 
-      return obj[sortBy]
+      return obj[sortBy] || ''
     }
 
     if (sorting.value.sortBy && sorting.value.sortingOrder) {
@@ -74,21 +78,21 @@ export const useProjects = (options?: { sorting?: Ref<Sorting>; pagination?: Ref
 
     fetch,
 
-    async add(project: Omit<Project, 'id' | 'created_at'>) {
+    async add(project: Partial<ProjectViewModel>) {
       isLoading.value = true
       await projectsStore.add(project)
       await fetch()
       isLoading.value = false
     },
 
-    async update(project: Project) {
+    async update(project: ProjectViewModel) {
       isLoading.value = true
       await projectsStore.update(project)
       await fetch()
       isLoading.value = false
     },
 
-    async remove(project: Project) {
+    async remove(project: ProjectViewModel) {
       isLoading.value = true
       await projectsStore.remove(project)
       await fetch()

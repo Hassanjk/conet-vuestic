@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Connet - Slack Clone API (NO EMAIL VERIFICATION)",
-    "description": "🎉 COMPLETE Postman collection for Slack Clone with Supabase REST API.\n\n🚀 SUPER SIMPLE SETUP:\n1. ✅ Set supabase_url to your project URL\n2. ✅ Set supabase_anon_key to your anon key\n3. 🔧 CRITICAL: Run COMPLETE-DATABASE-SETUP.sql (ONE FILE ONLY!)\n4. ✅ Test: Run 'Database Setup Verification' first!\n\n⚠️ NO EMAIL VERIFICATION REQUIRED:\n✅ Users are auto-confirmed on signup\n✅ Immediate access after signup\n✅ Perfect for development/testing\n\n🔧 WHAT'S FIXED:\n✅ Duplicate key violations resolved\n✅ Auth trigger handles existing profiles safely\n✅ Admin function prevents duplicate users\n✅ Proper error handling for all endpoints\n✅ Role auto-detection working perfectly\n✅ No email verification needed\n\n🎓 DYNAMIC ROLE ASSIGNMENT:\n📧 @karabuk.edu.tr → researcher\n📧 @ogrenci.karabuk.edu.tr → student \n📧 @gmail.com/@outlook.com → user\n✨ Roles automatically assigned on signup!\n\n🧪 TESTING SEQUENCE:\n1. Run COMPLETE-DATABASE-SETUP.sql in Supabase SQL Editor\n2. Run 'Database Setup Verification'\n3. Try 'Auth Signup Tests' (work instantly!)\n4. Test 'Admin User Management'\n5. Verify with 'User Queries'",
+    "name": "Connet - Academic Partnership Platform API",
+    "description": "🎉 COMPLETE Postman collection for Connet Academic Partnership Platform with Supabase REST API.\n\n🚀 SUPER SIMPLE SETUP:\n1. ✅ Set supabase_url to your project URL\n2. ✅ Set supabase_anon_key to your anon key\n3. 🔧 CRITICAL: Run current-supabase-state.sql + supabase-new-features.sql\n4. ✅ Test: Run 'Database Setup Verification' first!\n\n⚠️ NO EMAIL VERIFICATION REQUIRED:\n✅ Users are auto-confirmed on signup\n✅ Immediate access after signup\n✅ Perfect for development/testing\n\n🔧 WHAT'S FIXED:\n✅ Duplicate key violations resolved\n✅ Auth trigger handles existing profiles safely\n✅ Admin function prevents duplicate users\n✅ Proper error handling for all endpoints\n✅ Role auto-detection working perfectly\n✅ Auto profile sync on project creation\n✅ Foreign key constraint validation\n\n🎓 DYNAMIC ROLE ASSIGNMENT:\n📧 @karabuk.edu.tr → researcher\n📧 @ogrenci.karabuk.edu.tr → student \n📧 @gmail.com/@outlook.com → user\n✨ Roles automatically assigned on signup!\n\n🧪 TESTING SEQUENCE:\n1. Run SQL files in Supabase SQL Editor\n2. Run 'Database Setup Verification'\n3. Try 'Auth Signup Tests' (work instantly!)\n4. BEFORE creating projects: Run 'Verify User Profile Exists'\n5. If profile missing: Run 'Auto-Sync Profile'\n6. Test 'Projects Management' → 'Applications' → 'Favorites' → 'Ratings'\n7. Check 'Notifications' created by triggers\n\n⚠️ IMPORTANT: If you get foreign key errors, run the profile sync request!",
     "version": "3.0.0-NO-EMAIL-VERIFICATION",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -35,6 +35,30 @@
       "key": "admin_access_token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of created project for testing"
+    },
+    {
+      "key": "researcher_project_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of researcher's project for testing"
+    },
+    {
+      "key": "application_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of submitted application for testing"
+    },
+    {
+      "key": "rating_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of submitted rating for testing"
     }
   ],
   "item": [
@@ -1588,6 +1612,1295 @@
             },
             "url": "{{supabase_url}}/rest/v1/rpc/cleanup_test_data",
             "description": "🧹 CLEANUP TEST DATA\n\n✅ Removes all test users and roles\n⚠️ Use carefully - removes test data!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Projects Management",
+      "item": [
+        {
+          "name": "🔍 Verify User Profile Exists (Pre-check)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/users?id=eq.{{user_id}}&select=*",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "users"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.{{user_id}}"
+                },
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            },
+            "description": "🔍 VERIFY USER PROFILE EXISTS\n\n✅ CRITICAL: Run this before creating projects!\n✅ Checks if auth user has matching public.users record\n❌ If empty array returned, run 'Auto-Sync Profile'\n\n💡 This prevents foreign key errors on project creation"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('User profile exists', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "    ",
+                  "    if (responseJson.length === 0) {",
+                  "        console.error('❌ USER PROFILE MISSING! Run \"Auto-Sync Profile\" request first!');",
+                  "        pm.expect.fail('User profile does not exist in public.users table');",
+                  "    } else {",
+                  "        console.log('✅ User profile exists:', responseJson[0].email);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔄 Auto-Sync Profile (If Missing)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/sync_specific_auth_user",
+            "description": "🔄 AUTO-SYNC USER PROFILE\n\n✅ Run this if profile check fails\n✅ Creates public.users record from auth.users\n✅ Assigns role based on email domain\n\n💡 This is the SOLUTION to foreign key errors!"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Profile synced successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ Profile synced! You can now create projects.');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Create Project - Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_title\": \"AI Research Project - Machine Learning in Healthcare\",\n  \"p_description\": \"Looking for passionate researchers to collaborate on developing machine learning models for early disease detection. This project aims to revolutionize healthcare diagnostics using AI.\",\n  \"p_field_type\": \"Mühendislik\",\n  \"p_required_skills\": [\"Python\", \"Machine Learning\", \"TensorFlow\", \"Research\"],\n  \"p_contact_info\": \"student@ogrenci.karabuk.edu.tr\",\n  \"p_start_date\": \"2025-01-15\",\n  \"p_end_date\": \"2025-12-31\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/create_project_with_validation",
+            "description": "🎓 CREATE PROJECT - STUDENT\n\n✅ Creates project with validation:\n- Title, description, field type\n- Required skills array\n- Contact info, dates\n- Auto-assigns creator as owner\n- Auto-creates project participant record"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Project created successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.id).to.exist;",
+                  "    pm.expect(responseJson.title).to.exist;",
+                  "    pm.collectionVariables.set('project_id', responseJson.id);",
+                  "    console.log('Project ID saved:', responseJson.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "✅ Create Project - Researcher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_title\": \"Sustainable Technology Research\",\n  \"p_description\": \"Interdisciplinary research project on renewable energy solutions. Seeking collaborators from engineering and environmental science backgrounds.\",\n  \"p_field_type\": \"Bilim\",\n  \"p_required_skills\": [\"Research Methodology\", \"Data Analysis\", \"Renewable Energy\"],\n  \"p_contact_info\": \"researcher@karabuk.edu.tr\",\n  \"p_start_date\": \"2025-02-01\",\n  \"p_end_date\": \"2026-01-31\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/create_project_with_validation",
+            "description": "🔬 CREATE PROJECT - RESEARCHER\n\n✅ Researcher creates interdisciplinary project"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Researcher project created', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('researcher_project_id', responseJson.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "📋 Get All Active Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/projects?is_active=eq.true&select=*",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "projects"],
+              "query": [
+                {
+                  "key": "is_active",
+                  "value": "eq.true"
+                },
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            },
+            "description": "📋 GET ALL ACTIVE PROJECTS\n\n✅ Lists all active projects (is_active=true)\n✅ Shows title, description, field_type, skills, dates\n✅ Includes creator info and view count"
+          }
+        },
+        {
+          "name": "🔍 Get Project Details with Stats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{project_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/get_project_with_details",
+            "description": "🔍 GET PROJECT WITH DETAILS\n\n✅ Returns complete project info:\n- Project data\n- Owner information\n- Application count\n- Average rating\n- Participant count"
+          }
+        },
+        {
+          "name": "🔍 Search Projects - By Field Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_filters\": {\n    \"field_type\": \"Mühendislik\"\n  }\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/search_projects",
+            "description": "🔍 SEARCH PROJECTS - BY FIELD TYPE\n\n✅ Filter projects by field:\n- Mühendislik (Engineering)\n- Sağlık (Health)\n- Eğitim (Education)\n- Teknoloji (Technology)\n- Sanat (Arts)\n- Bilim (Science)\n- Other"
+          }
+        },
+        {
+          "name": "🔍 Search Projects - By Skills",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_filters\": {\n    \"skills\": [\"Python\", \"Machine Learning\"]\n  }\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/search_projects",
+            "description": "🔍 SEARCH PROJECTS - BY SKILLS\n\n✅ Find projects requiring specific skills"
+          }
+        },
+        {
+          "name": "✏️ Update My Project",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"UPDATED: This project now includes additional research on ethical AI considerations and data privacy.\",\n  \"required_skills\": [\"Python\", \"Machine Learning\", \"TensorFlow\", \"Research\", \"Ethics\"]\n}"
+            },
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/projects?id=eq.{{project_id}}",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "projects"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.{{project_id}}"
+                }
+              ]
+            },
+            "description": "✏️ UPDATE MY PROJECT\n\n✅ Update project details\n✅ RLS ensures only owner can update"
+          }
+        },
+        {
+          "name": "🔒 Close Project",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"closed\"\n}"
+            },
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/projects?id=eq.{{project_id}}",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "projects"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.{{project_id}}"
+                }
+              ]
+            },
+            "description": "🔒 CLOSE PROJECT\n\n✅ Mark project as closed (no new applications)\n✅ Status: active → closed"
+          }
+        },
+        {
+          "name": "🗑️ Soft Delete Project",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}"
+            },
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/projects?id=eq.{{project_id}}",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "projects"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.{{project_id}}"
+                }
+              ]
+            },
+            "description": "🗑️ SOFT DELETE PROJECT\n\n✅ Mark as inactive (hidden from listings)\n✅ Data preserved for history"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤝 Applications Management",
+      "item": [
+        {
+          "name": "✅ Apply to Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{project_id}}\",\n  \"p_message\": \"I'm very interested in this AI healthcare project. I have 2 years of experience with Python and machine learning, and I've worked on similar healthcare prediction models. I would love to contribute to this research!\",\n  \"p_cv_link\": \"https://example.com/my-cv.pdf\",\n  \"p_relevant_skills\": [\"Python\", \"Machine Learning\", \"Healthcare Domain Knowledge\"]\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/apply_to_project",
+            "description": "🤝 APPLY TO PROJECT\n\n✅ Submit application:\n- Message explaining interest\n- CV link (optional)\n- Relevant skills\n\n✅ Prevents duplicate applications\n✅ Validates project is active\n✅ Creates notification for project owner"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Application submitted successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.id).to.exist;",
+                  "    pm.collectionVariables.set('application_id', responseJson.id);",
+                  "    console.log('Application ID saved:', responseJson.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Test Duplicate Application Prevention",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{project_id}}\",\n  \"p_message\": \"Trying to apply again (should fail)\",\n  \"p_relevant_skills\": [\"Python\"]\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/apply_to_project",
+            "description": "❌ TEST DUPLICATE PREVENTION\n\n✅ Should fail with error:\n\"You have already applied to this project\""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Duplicate application prevented', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "📋 Get My Applications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/get_my_applications_dashboard",
+            "description": "📋 GET MY APPLICATIONS DASHBOARD\n\n✅ Returns all my applications with:\n- Application details\n- Project information\n- Current status\n- Application date"
+          }
+        },
+        {
+          "name": "📥 Get Applications to My Projects (Owner View)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_applications?select=*,applicant:user_id(full_name,email,avatar_url),project:project_id(title)",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_applications"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,applicant:user_id(full_name,email,avatar_url),project:project_id(title)"
+                }
+              ]
+            },
+            "description": "📥 GET APPLICATIONS TO MY PROJECTS\n\n✅ Project owner sees:\n- All applications to their projects\n- Applicant details\n- Application message and skills\n- Current status"
+          }
+        },
+        {
+          "name": "✅ Accept Application (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_application_id\": \"{{application_id}}\",\n  \"p_new_status\": \"accepted\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/update_application_status",
+            "description": "✅ ACCEPT APPLICATION\n\n✅ Project owner accepts applicant:\n- Status: pending → accepted\n- Adds participant to project_participants\n- Sends notification to applicant\n\n✅ Only project owner can accept"
+          }
+        },
+        {
+          "name": "❌ Reject Application (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_application_id\": \"{{application_id}}\",\n  \"p_new_status\": \"rejected\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/update_application_status",
+            "description": "❌ REJECT APPLICATION\n\n✅ Project owner rejects applicant\n✅ Sends notification to applicant"
+          }
+        },
+        {
+          "name": "🔄 Withdraw Application (Applicant)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_application_id\": \"{{application_id}}\",\n  \"p_new_status\": \"withdrawn\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/update_application_status",
+            "description": "🔄 WITHDRAW APPLICATION\n\n✅ Applicant withdraws their application\n✅ Status: pending → withdrawn"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Favorites Management",
+      "item": [
+        {
+          "name": "⭐ Add Project to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{project_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/toggle_favorite",
+            "description": "⭐ ADD TO FAVORITES\n\n✅ Toggle favorite status:\n- If not favorited → Add to favorites\n- If already favorited → Remove from favorites\n\n✅ Returns new favorite state"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Favorite toggled successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.is_favorited).to.exist;",
+                  "    console.log('Is favorited:', responseJson.is_favorited);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "📋 Get My Favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/favorites?select=*,project:project_id(id,title,description,field_type,status)&order=created_at.desc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "favorites"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,project:project_id(id,title,description,field_type,status)"
+                },
+                {
+                  "key": "order",
+                  "value": "created_at.desc"
+                }
+              ]
+            },
+            "description": "📋 GET MY FAVORITES\n\n✅ Lists all favorited projects\n✅ Shows project details\n✅ Ordered by most recent"
+          }
+        },
+        {
+          "name": "🔢 Get Favorite Count for Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/favorites?project_id=eq.{{project_id}}&select=count",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "favorites"],
+              "query": [
+                {
+                  "key": "project_id",
+                  "value": "eq.{{project_id}}"
+                },
+                {
+                  "key": "select",
+                  "value": "count"
+                }
+              ]
+            },
+            "description": "🔢 GET FAVORITE COUNT\n\n✅ Count how many users favorited this project"
+          }
+        },
+        {
+          "name": "🗑️ Remove from Favorites (Toggle)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{project_id}}\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/toggle_favorite",
+            "description": "🗑️ REMOVE FROM FAVORITES\n\n✅ Same toggle function\n✅ If favorited → Removes favorite"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Ratings & Reviews",
+      "item": [
+        {
+          "name": "⭐ Submit Rating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{project_id}}\",\n  \"p_rating\": 5,\n  \"p_review_text\": \"Excellent project! Great collaboration experience. The team was professional and the project goals were clearly defined. Highly recommend working with this project owner.\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/submit_rating",
+            "description": "⭐ SUBMIT RATING\n\n✅ Rate completed project:\n- Rating: 1-5 stars\n- Review text (optional)\n\n✅ Validates:\n- User is project participant\n- One rating per user per project\n- Rating is between 1-5"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Rating submitted successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.id).to.exist;",
+                  "    pm.collectionVariables.set('rating_id', responseJson.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "📋 Get Project Ratings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_ratings?project_id=eq.{{project_id}}&select=*,reviewer:user_id(full_name,avatar_url)&order=created_at.desc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_ratings"],
+              "query": [
+                {
+                  "key": "project_id",
+                  "value": "eq.{{project_id}}"
+                },
+                {
+                  "key": "select",
+                  "value": "*,reviewer:user_id(full_name,avatar_url)"
+                },
+                {
+                  "key": "order",
+                  "value": "created_at.desc"
+                }
+              ]
+            },
+            "description": "📋 GET PROJECT RATINGS\n\n✅ Shows all ratings for project:\n- Star rating\n- Review text\n- Reviewer info\n- Date"
+          }
+        },
+        {
+          "name": "📊 Calculate Average Rating",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/rpc/get_project_with_details?p_project_id={{project_id}}",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "rpc", "get_project_with_details"],
+              "query": [
+                {
+                  "key": "p_project_id",
+                  "value": "{{project_id}}"
+                }
+              ]
+            },
+            "description": "📊 GET AVERAGE RATING\n\n✅ Returns project with average_rating field\n✅ Calculated from all ratings"
+          }
+        },
+        {
+          "name": "✏️ Update My Rating",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"review_text\": \"Updated review: Good project overall, minor communication issues but great results.\"\n}"
+            },
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_ratings?id=eq.{{rating_id}}",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_ratings"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.{{rating_id}}"
+                }
+              ]
+            },
+            "description": "✏️ UPDATE MY RATING\n\n✅ Update rating and review text\n✅ RLS ensures only reviewer can update"
+          }
+        },
+        {
+          "name": "❌ Test Non-Participant Rating (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_project_id\": \"{{researcher_project_id}}\",\n  \"p_rating\": 5,\n  \"p_review_text\": \"Trying to rate without being participant (should fail)\"\n}"
+            },
+            "url": "{{supabase_url}}/rest/v1/rpc/submit_rating",
+            "description": "❌ TEST NON-PARTICIPANT RATING\n\n✅ Should fail with error:\n\"Only project participants can rate\""
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "📋 Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/notifications?select=*&order=created_at.desc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*"
+                },
+                {
+                  "key": "order",
+                  "value": "created_at.desc"
+                }
+              ]
+            },
+            "description": "📋 GET MY NOTIFICATIONS\n\n✅ Shows all notifications:\n- Type (new_application, application_accepted, etc.)\n- Title and message\n- Read/unread status\n- Related project/application\n\n✅ RLS ensures users only see their notifications"
+          }
+        },
+        {
+          "name": "📨 Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/notifications?read=eq.false&select=*&order=created_at.desc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "read",
+                  "value": "eq.false"
+                },
+                {
+                  "key": "select",
+                  "value": "*"
+                },
+                {
+                  "key": "order",
+                  "value": "created_at.desc"
+                }
+              ]
+            },
+            "description": "📨 GET UNREAD NOTIFICATIONS\n\n✅ Filter for unread only\n✅ Use for notification badge count"
+          }
+        },
+        {
+          "name": "✅ Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"read\": true\n}"
+            },
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/notifications?id=eq.NOTIFICATION_ID_HERE",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "eq.NOTIFICATION_ID_HERE"
+                }
+              ]
+            },
+            "description": "✅ MARK AS READ\n\n✅ Update read status\n✅ Replace NOTIFICATION_ID_HERE with actual ID"
+          }
+        },
+        {
+          "name": "✅ Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"read\": true\n}"
+            },
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/notifications?read=eq.false",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "read",
+                  "value": "eq.false"
+                }
+              ]
+            },
+            "description": "✅ MARK ALL AS READ\n\n✅ Marks all unread notifications as read"
+          }
+        },
+        {
+          "name": "🔢 Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Prefer",
+                "value": "count=exact"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/notifications?read=eq.false&select=count",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "read",
+                  "value": "eq.false"
+                },
+                {
+                  "key": "select",
+                  "value": "count"
+                }
+              ]
+            },
+            "description": "🔢 GET UNREAD COUNT\n\n✅ Returns count of unread notifications\n✅ Use for notification badge"
+          }
+        },
+        {
+          "name": "🔍 Filter Notifications by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/notifications?type=eq.new_application&select=*&order=created_at.desc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "eq.new_application"
+                },
+                {
+                  "key": "select",
+                  "value": "*"
+                },
+                {
+                  "key": "order",
+                  "value": "created_at.desc"
+                }
+              ]
+            },
+            "description": "🔍 FILTER BY TYPE\n\n✅ Notification types:\n- new_application\n- application_accepted\n- application_rejected\n- new_message\n- favorite_project_update\n- deadline_approaching\n- matching_project"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Project Participants",
+      "item": [
+        {
+          "name": "📋 Get Project Participants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_participants?project_id=eq.{{project_id}}&select=*,participant:user_id(full_name,email,avatar_url)&order=joined_at.asc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_participants"],
+              "query": [
+                {
+                  "key": "project_id",
+                  "value": "eq.{{project_id}}"
+                },
+                {
+                  "key": "select",
+                  "value": "*,participant:user_id(full_name,email,avatar_url)"
+                },
+                {
+                  "key": "order",
+                  "value": "joined_at.asc"
+                }
+              ]
+            },
+            "description": "📋 GET PROJECT PARTICIPANTS\n\n✅ Shows all participants:\n- Owner\n- Members\n- Join date\n- Participant details"
+          }
+        },
+        {
+          "name": "📋 Get My Participated Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_participants?select=*,project:project_id(id,title,description,status,field_type)&order=joined_at.desc",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_participants"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*,project:project_id(id,title,description,status,field_type)"
+                },
+                {
+                  "key": "order",
+                  "value": "joined_at.desc"
+                }
+              ]
+            },
+            "description": "📋 GET MY PARTICIPATED PROJECTS\n\n✅ Shows all projects I'm part of:\n- As owner\n- As member\n- With project details"
+          }
+        },
+        {
+          "name": "🔍 Check if User is Participant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_participants?project_id=eq.{{project_id}}&user_id=eq.{{user_id}}&select=*",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_participants"],
+              "query": [
+                {
+                  "key": "project_id",
+                  "value": "eq.{{project_id}}"
+                },
+                {
+                  "key": "user_id",
+                  "value": "eq.{{user_id}}"
+                },
+                {
+                  "key": "select",
+                  "value": "*"
+                }
+              ]
+            },
+            "description": "🔍 CHECK PARTICIPATION\n\n✅ Check if user is project participant\n✅ Returns empty array if not participant\n✅ Use for rating eligibility"
+          }
+        },
+        {
+          "name": "🗑️ Remove Participant (Owner Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{supabase_anon_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{supabase_url}}/rest/v1/project_participants?project_id=eq.{{project_id}}&user_id=eq.USER_ID_TO_REMOVE",
+              "host": ["{{supabase_url}}"],
+              "path": ["rest", "v1", "project_participants"],
+              "query": [
+                {
+                  "key": "project_id",
+                  "value": "eq.{{project_id}}"
+                },
+                {
+                  "key": "user_id",
+                  "value": "eq.USER_ID_TO_REMOVE"
+                }
+              ]
+            },
+            "description": "🗑️ REMOVE PARTICIPANT\n\n✅ Project owner can remove members\n⚠️ Cannot remove owner\n✅ Replace USER_ID_TO_REMOVE with actual ID"
           }
         }
       ]

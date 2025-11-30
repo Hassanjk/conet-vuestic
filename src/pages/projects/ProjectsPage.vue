@@ -5,7 +5,7 @@ import { useProjects } from './composables/useProjects'
 import ProjectCards from './widgets/ProjectCards.vue'
 import ProjectTable from './widgets/ProjectsTable.vue'
 import EditProjectForm from './widgets/EditProjectForm.vue'
-import { Project } from './types'
+import { ProjectViewModel } from './types'
 import { useModal, useToast } from 'vuestic-ui'
 import { useProjectUsers } from './composables/useProjectUsers'
 
@@ -21,10 +21,10 @@ provide('ProjectsPage', {
   getUserById,
 })
 
-const projectToEdit = ref<Project | null>(null)
+const projectToEdit = ref<ProjectViewModel | null>(null)
 const doShowProjectFormModal = ref(false)
 
-const editProject = (project: Project) => {
+const editProject = (project: ProjectViewModel) => {
   projectToEdit.value = project
   doShowProjectFormModal.value = true
 }
@@ -36,16 +36,16 @@ const createNewProject = () => {
 
 const { init: notify } = useToast()
 
-const onProjectSaved = async (project: Project) => {
+const onProjectSaved = async (project: ProjectViewModel) => {
   doShowProjectFormModal.value = false
-  if ('id' in project) {
-    await update(project as Project)
+  if ('id' in project && project.id) {
+    await update(project)
     notify({
       message: 'Project updated',
       color: 'success',
     })
   } else {
-    await add(project as Project)
+    await add(project)
     notify({
       message: 'Project created',
       color: 'success',
@@ -55,10 +55,10 @@ const onProjectSaved = async (project: Project) => {
 
 const { confirm } = useModal()
 
-const onProjectDeleted = async (project: Project) => {
+const onProjectDeleted = async (project: ProjectViewModel) => {
   const response = await confirm({
     title: 'Delete project',
-    message: `Are you sure you want to delete project "${project.project_name}"?`,
+    message: `Are you sure you want to delete project "${project.title}"?`,
     okText: 'Delete',
     size: 'small',
     maxWidth: '380px',

@@ -18,5 +18,6 @@ const badgeColorMap: Record<Project['status'], string> = {
 </script>
 
 <template>
-  <VaBadge square :color="badgeColorMap[$props.status]" :text="$props.status.toUpperCase()" />
+  <VaBadge v-if="$props.status" square :color="badgeColorMap[$props.status] || 'primary'" :text="$props.status.toUpperCase()" />
+  <VaBadge v-else square color="secondary" text="UNKNOWN" />
 </template>

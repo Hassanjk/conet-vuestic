@@ -33,6 +33,13 @@ export default {
       },
     },
     {
+      name: 'browse-projects',
+      displayName: 'menu.browseProjects',
+      meta: {
+        icon: 'explore',
+      },
+    },
+    {
       name: 'payments',
       displayName: 'menu.payments',
       meta: {

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { type PropType, inject } from 'vue'
-import { type Project } from '../types'
+import { type ProjectViewModel } from '../types'
 import ProjectStatusBadge from '../components/ProjectStatusBadge.vue'
 
 defineProps({
   projects: {
-    type: Array as PropType<Project[]>,
+    type: Array as PropType<ProjectViewModel[]>,
     required: true,
   },
   loading: {
@@ -15,8 +15,8 @@ defineProps({
 })
 
 defineEmits<{
-  (event: 'edit', project: Project): void
-  (event: 'delete', project: Project): void
+  (event: 'edit', project: ProjectViewModel): void
+  (event: 'delete', project: ProjectViewModel): void
 }>()
 
 const { getUserById, getTeamOptions } = inject<any>('ProjectsPage')
@@ -30,22 +30,28 @@ const { getUserById, getTeamOptions } = inject<any>('ProjectsPage')
   >
     <VaCard
       v-for="project in projects"
-      :key="project.project_name"
+      :key="project.id"
       :style="{ '--va-card-outlined-border': '1px solid var(--va-background-element)' }"
       outlined
     >
       <VaCardContent class="flex flex-col h-full">
-        <div class="text-[var(--va-secondary)]">{{ new Date(project.created_at).toLocaleDateString() }}</div>
+        <div class="flex justify-between items-start mb-2">
+          <VaBadge :text="project.field_type" color="primary" />
+          <div class="text-[var(--va-secondary)] text-sm">{{ new Date(project.created_at).toLocaleDateString() }}</div>
+        </div>
         <div class="flex flex-col items-center gap-4 grow">
           <h4 class="va-h4 text-center self-stretch overflow-hidden line-clamp-2 text-ellipsis">
-            {{ project.project_name }}
+            {{ project.title }}
           </h4>
+          <p class="text-sm text-[var(--va-secondary)] line-clamp-2 text-center">
+            {{ project.description }}
+          </p>
           <p>
             <span class="text-[var(--va-secondary)]">Owner: </span>
             <span v-if="getUserById(project.project_owner)">{{ getUserById(project.project_owner)!.fullname }}</span>
           </p>
           <VaAvatarGroup class="my-4" :options="getTeamOptions(project.team)" :max="5" />
-          <ProjectStatusBadge :status="project.status" />
+          <ProjectStatusBadge :status="project.displayStatus" />
         </div>
         <VaDivider class="my-6" />
         <div class="flex justify-between">
